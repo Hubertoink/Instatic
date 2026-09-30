@@ -36,6 +36,7 @@
  */
 
 import { Marked, type Tokens } from 'marked'
+import { alignedBlock } from './alignedBlock'
 import { escapeHtml, isSafeUrl } from '@core/html-sanitize'
 import { parseMediaImageTitle, mediaImageWidth } from './mediaImagePresentation'
 
@@ -45,6 +46,12 @@ const marked = new Marked({ gfm: true, breaks: false })
 
 marked.use({
   extensions: [
+    {
+      ...alignedBlock,
+      renderer(token: Tokens.Generic) {
+        return `<${token.tag} style="text-align:${token.alignment}">${this.parser.parseInline(token.tokens ?? [])}</${token.tag}>\n`
+      },
+    },
     {
       name: 'instaticVideo',
       level: 'block',
@@ -63,8 +70,9 @@ marked.use({
     },
   ],
   renderer: {
-    link({ href, tokens }) {
+    link({ href, tokens, title }) {
       const inner = this.parser.parseInline(tokens)
+      if (title === 'instatic:download') return `<a href="${safeMarkdownUrl(href)}" download>${inner}</a>`
       return `<a href="${safeMarkdownUrl(href)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
     },
     image({ href, text, title }) {

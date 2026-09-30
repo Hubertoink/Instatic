@@ -5,6 +5,7 @@ import { Dialog } from '@ui/components/Dialog'
 import { Input } from '@ui/components/Input'
 import { FormField } from '@ui/components/FormField'
 import { Button } from '@ui/components/Button'
+import { LinkTargetFields } from './LinkTargetFields'
 
 export function InsertLinkDialog({ editor, position, onClose }: {
   editor: Editor
@@ -14,6 +15,7 @@ export function InsertLinkDialog({ editor, position, onClose }: {
   const id = useId()
   const [text, setText] = useState('')
   const [url, setUrl] = useState('')
+  const [download, setDownload] = useState(false)
   const href = url.trim()
   const valid = href.length > 0 && isSafeUrl(href)
 
@@ -25,7 +27,7 @@ export function InsertLinkDialog({ editor, position, onClose }: {
         editor.chain().focus().insertContentAt(position, {
           type: 'text',
           text: text.trim() || href,
-          marks: [{ type: 'link', attrs: { href } }],
+          marks: [{ type: 'link', attrs: { href, download: download ? '' : null } }],
         }).run()
         onClose()
       }}>
@@ -37,6 +39,8 @@ export function InsertLinkDialog({ editor, position, onClose }: {
             invalid={href.length > 0 && !valid}
             onChange={(event) => setUrl(event.target.value)} />
         </FormField>
+        <LinkTargetFields url={url} download={download} onDownloadChange={setDownload}
+          onUrlChange={(value, filename) => { setUrl(value); if (!text.trim()) setText(filename) }} />
         <Button type="submit" variant="primary" disabled={!valid}>Insert link</Button>
       </form>
     </Dialog>
