@@ -43,10 +43,16 @@ Build the image from the reviewed fork commit:
 docker build -t instatic-hochstaett:staging .
 ```
 
-The upstream release workflow currently targets `ghcr.io/corebunch/instatic`.
-It has not been adapted for this fork: do not create release tags as a way to
-publish fork images. A separate fork image workflow and registry configuration
-are the next deployment step.
+The fork image workflow, `.github/workflows/fork-image.yml`, builds Linux amd64
+images on pushes to `main` and `chore/mittwald-staging`, and supports manual
+dispatch after merging. Images are tagged
+`ghcr.io/hubertoink/instatic:staging-<full-commit-sha>`. The Docker build runs
+TypeScript checking and the production frontend build. It does not run tests
+or lint; those remain separate verification steps.
+
+The upstream release workflow still targets `ghcr.io/corebunch/instatic`;
+do not create release tags to publish fork images. The fork workflow only
+publishes images and does not change a running Mittwald container.
 
 Mittwald needs an image available in a registry, persistent storage, HTTPS
 routing and the application environment described in [docker-image.md](docker-image.md).
