@@ -6,6 +6,7 @@ import { Input } from '@ui/components/Input'
 import { FormField } from '@ui/components/FormField'
 import { Button } from '@ui/components/Button'
 import { LinkTargetFields } from './LinkTargetFields'
+import styles from './InsertLinkDialog.module.css'
 
 export function InsertLinkDialog({ editor, position, onClose }: {
   editor: Editor
@@ -20,8 +21,9 @@ export function InsertLinkDialog({ editor, position, onClose }: {
   const valid = href.length > 0 && isSafeUrl(href)
 
   return (
-    <Dialog open title="Insert link" onClose={onClose} size="sm">
-      <form onSubmit={(event) => {
+    <Dialog open title="Insert link" onClose={onClose} size="sm"
+      footer={<Button type="submit" form={`${id}-form`} variant="primary" disabled={!valid}>Insert link</Button>}>
+      <form id={`${id}-form`} className={styles.form} onSubmit={(event) => {
         event.preventDefault()
         if (!valid || editor.isDestroyed) return
         editor.chain().focus().insertContentAt(position, {
@@ -41,7 +43,6 @@ export function InsertLinkDialog({ editor, position, onClose }: {
         </FormField>
         <LinkTargetFields url={url} download={download} onDownloadChange={setDownload}
           onUrlChange={(value, filename) => { setUrl(value); if (!text.trim()) setText(filename) }} />
-        <Button type="submit" variant="primary" disabled={!valid}>Insert link</Button>
       </form>
     </Dialog>
   )
