@@ -10,8 +10,7 @@
  * `marked`) plus two CMS extensions:
  *   - `@[video](url)` — a video media node (parsed by a custom marked
  *     tokenizer; serialised back as the same raw line)
- *   - Images on their own line are promoted to a block-level `media` node
- *     rather than wrapped in a paragraph
+ *   - Standalone images become media nodes; titles store image presentation.
  *
  * Headings are clamped to h2-h4. The title of a post owns h1, so anything
  * shallower is normalised up to h2 and anything deeper is normalised down
@@ -26,6 +25,7 @@
  */
 
 import { Marked, type Tokens, type Token } from 'marked'
+import { mediaNode, parseMediaImageTitle, serializeMediaImageTitle, escapeImageTitle, mediaSizeAttr, booleanAttr, type MediaImagePresentation } from './mediaImagePresentation'
 
 // ---------------------------------------------------------------------------
 // ProseMirror JSON shape (just enough — we don't pull in @tiptap/pm here so
@@ -167,7 +167,7 @@ function paragraphTokenToNode(token: Tokens.Paragraph): JSONNode | JSONNode[] {
   const inline = token.tokens ?? []
   if (inline.length === 1 && inline[0].type === 'image') {
     const img = inline[0] as Tokens.Image
-    return mediaNode('image', img.href, img.text)
+    return mediaNode('image', img.href, img.text, parseMediaImageTitle(img.title))
   }
 
   // Multiple inline tokens but the only non-text content is an image →
@@ -186,7 +186,7 @@ function paragraphTokenToNode(token: Tokens.Paragraph): JSONNode | JSONNode[] {
       if (t.type === 'image') {
         flush()
         const img = t as Tokens.Image
-        nodes.push(mediaNode('image', img.href, img.text))
+        nodes.push(mediaNode('image', img.href, img.text, parseMediaImageTitle(img.title)))
       } else {
         buffer.push(t)
       }
@@ -530,7 +530,13 @@ function blockNodeToMarkdown(node: JSONNode): string {
       const mediaType = stringAttr(node, 'mediaType', 'image')
       if (mediaType === 'video') return `@[video](${src})`
       const alt = stringAttr(node, 'alt', '')
-      return `![${alt}](${src})`
+      const presentation: MediaImagePresentation = {
+        size: mediaSizeAttr(node, 'size'),
+        lightbox: booleanAttr(node, 'lightbox'),
+        title: stringAttr(node, 'title', ''),
+      }
+      const metadata = serializeMediaImageTitle(presentation)
+      return `![${alt}](${src}${metadata ? ` "${escapeImageTitle(metadata)}"` : ''})`
     }
     default:
       return ''
@@ -683,13 +689,6 @@ function clampHeadingLevel(level: number): 2 | 3 | 4 {
 
 function emptyParagraph(): JSONNode {
   return { type: 'paragraph' }
-}
-
-function mediaNode(mediaType: 'image' | 'video', src: string, alt: string): JSONNode {
-  return {
-    type: 'media',
-    attrs: { mediaType, src, alt },
-  }
 }
 
 function isInlineTokenType(type: string): boolean {
