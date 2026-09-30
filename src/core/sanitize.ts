@@ -67,8 +67,8 @@ let activeDOMPurify: DOMPurifyRuntime | null = null
 const hookedPurifiers = new WeakSet<object>()
 
 /**
- * Attribute post-pass, installed once per purifier: every link opens in a new
- * tab with `noopener`. Rich-text profiles that opt in (`_safeImages`) keep
+ * Attribute post-pass, installed once per purifier: navigation links open in a new
+ * tab with `noopener`; download links keep their download action. Rich-text profiles that opt in (`_safeImages`) keep
  * relative and http(s) images while rejecting executable/document schemes;
  * README profiles (`_externalImagesOnly`) narrow that to absolute http(s)
  * images and add a no-referrer policy. DOMPurify admits `data:` on <img>
@@ -79,7 +79,8 @@ function installAttributeHook(purifier: DOMPurifyRuntime): DOMPurifyRuntime {
   if (!hookedPurifiers.has(purifier) && typeof purifier.addHook === 'function') {
     purifier.addHook('afterSanitizeAttributes', (node, _hookEvent, config) => {
       if (node.tagName === 'A') {
-        node.setAttribute?.('target', '_blank')
+        if (node.getAttribute?.('download') != null) node.removeAttribute?.('target')
+        else node.setAttribute?.('target', '_blank')
         node.setAttribute?.('rel', 'noopener noreferrer')
       }
       if (node.tagName === 'IMG' && config._safeImages) {
@@ -174,10 +175,10 @@ const RICHTEXT_CONFIG: SanitizerConfig = {
   ],
   // Restrict attributes to safe subset; data-* is blocked by default
   ALLOWED_ATTR: [
-    'href', 'target', 'rel', 'class', 'id',
+    'href', 'target', 'rel', 'class', 'id', 'download',
     'src', 'alt', 'title', 'width', 'height', 'loading', 'decoding',
   ],
-  // Force all links to open in a new tab with noopener
+  // Navigation links open in a new tab with noopener; downloads omit target.
   ADD_ATTR: ['target'],
   // Never allow data: / javascript: in href
   ALLOW_DATA_ATTR: false,

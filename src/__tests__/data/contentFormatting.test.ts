@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { markdownToProseMirrorDoc, proseMirrorDocToMarkdown, type JSONNode } from '@core/markdown/markdownDocument'
 import { renderMarkdownToHtml } from '@core/markdown/renderMarkdown'
+import { sanitizeRichtext } from '@core/sanitize'
 
 describe('persisted content formatting', () => {
   for (const textAlign of ['left', 'center', 'right', 'justify']) {
@@ -27,6 +28,14 @@ describe('persisted content formatting', () => {
 
   it('retains URL safety for download links', () => {
     expect(renderMarkdownToHtml('[bad](javascript:alert%281%29 "instatic:download")')).not.toContain('href="javascript:')
+  })
+
+  it('retains alignment and downloads through publisher sanitization', () => {
+    const html = sanitizeRichtext(renderMarkdownToHtml('<p align="center">[File](/uploads/file.pdf "instatic:download")</p>'))
+    expect(html).toContain('class="instatic-content-align--center"')
+    expect(html).toContain('download=""')
+    expect(html).not.toContain('target="_blank"')
+    expect(html).not.toContain('style=')
   })
 
   it('keeps adjacent aligned blocks and surrounding paragraphs separate', () => {

@@ -49,7 +49,7 @@ marked.use({
     {
       ...alignedBlock,
       renderer(token: Tokens.Generic) {
-        return `<${token.tag} style="text-align:${token.alignment}">${this.parser.parseInline(token.tokens ?? [])}</${token.tag}>\n`
+        return `<${token.tag} class="instatic-content-align--${token.alignment}" style="text-align:${token.alignment}">${this.parser.parseInline(token.tokens ?? [])}</${token.tag}>\n`
       },
     },
     {
