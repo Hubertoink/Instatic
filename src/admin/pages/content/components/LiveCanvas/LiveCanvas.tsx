@@ -135,6 +135,7 @@ const IFRAME_EDITOR_STYLE = `
     height: 0;
     color: rgba(127, 127, 127, 0.55);
   }
+
 `
 
 /**

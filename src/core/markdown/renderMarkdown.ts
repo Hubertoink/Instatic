@@ -19,6 +19,10 @@
  *   - **CMS video extension.** `@[video](url)` is recognised at the block
  *     level and emits `<video controls src="...">`. This is the same syntax
  *     the editor writes for video media nodes.
+ *   - **Image presentation metadata.** The content editor stores `SM` and
+ *     lightbox choices in the Markdown image title (`"size=sm lightbox"`).
+ *     Lightbox links open a modal via the publisher runtime and fall back
+ *     to the image URL when JavaScript is unavailable.
  *
  * Anchors are normalised to `target="_blank" rel="noopener noreferrer"`.
  *
@@ -33,6 +37,7 @@
 
 import { Marked, type Tokens } from 'marked'
 import { escapeHtml, isSafeUrl } from '@core/html-sanitize'
+import { parseMediaImageTitle, mediaImageWidth } from './mediaImagePresentation'
 
 export { firstMediaPathFromMarkdown as firstImagePathFromMarkdown } from './markdownDocument'
 
@@ -63,9 +68,18 @@ marked.use({
       return `<a href="${safeMarkdownUrl(href)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
     },
     image({ href, text, title }) {
+      const presentation = parseMediaImageTitle(title)
       const altAttr = escapeHtml(text ?? '')
-      const titleAttr = title ? ` title="${escapeHtml(title)}"` : ''
-      return `<img src="${safeMarkdownUrl(href)}" alt="${altAttr}"${titleAttr} loading="lazy">`
+      const actualTitleAttr = presentation.title
+        ? ` title="${escapeHtml(presentation.title)}"`
+        : ''
+      const safeSrc = safeMarkdownUrl(href)
+      const width = mediaImageWidth(presentation.size)
+      const image = `<img class="instatic-content-image instatic-content-image--${presentation.size}" src="${safeSrc}" alt="${altAttr}"${actualTitleAttr} loading="lazy" style="display:block;width:${width};max-width:100%;height:auto;margin-inline:auto">`
+
+      if (!presentation.lightbox || safeSrc === '#') return image
+
+      return `<a class="instatic-lightbox-trigger" href="${safeSrc}" aria-label="Open image in full size" style="display:block;width:${width};margin-inline:auto">${image}</a>`
     },
   },
 })
