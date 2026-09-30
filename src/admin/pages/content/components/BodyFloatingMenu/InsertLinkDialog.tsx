@@ -5,6 +5,8 @@ import { Dialog } from '@ui/components/Dialog'
 import { Input } from '@ui/components/Input'
 import { FormField } from '@ui/components/FormField'
 import { Button } from '@ui/components/Button'
+import { LinkTargetFields } from './LinkTargetFields'
+import styles from './InsertLinkDialog.module.css'
 
 export function InsertLinkDialog({ editor, position, onClose }: {
   editor: Editor
@@ -14,18 +16,20 @@ export function InsertLinkDialog({ editor, position, onClose }: {
   const id = useId()
   const [text, setText] = useState('')
   const [url, setUrl] = useState('')
+  const [download, setDownload] = useState(false)
   const href = url.trim()
   const valid = href.length > 0 && isSafeUrl(href)
 
   return (
-    <Dialog open title="Insert link" onClose={onClose} size="sm">
-      <form onSubmit={(event) => {
+    <Dialog open title="Insert link" onClose={onClose} size="sm"
+      footer={<Button type="submit" form={`${id}-form`} variant="primary" disabled={!valid}>Insert link</Button>}>
+      <form id={`${id}-form`} className={styles.form} onSubmit={(event) => {
         event.preventDefault()
         if (!valid || editor.isDestroyed) return
         editor.chain().focus().insertContentAt(position, {
           type: 'text',
           text: text.trim() || href,
-          marks: [{ type: 'link', attrs: { href } }],
+          marks: [{ type: 'link', attrs: { href, download: download ? '' : null } }],
         }).run()
         onClose()
       }}>
@@ -37,7 +41,8 @@ export function InsertLinkDialog({ editor, position, onClose }: {
             invalid={href.length > 0 && !valid}
             onChange={(event) => setUrl(event.target.value)} />
         </FormField>
-        <Button type="submit" variant="primary" disabled={!valid}>Insert link</Button>
+        <LinkTargetFields url={url} download={download} onDownloadChange={setDownload}
+          onUrlChange={(value, filename) => { setUrl(value); if (!text.trim()) setText(filename) }} />
       </form>
     </Dialog>
   )
