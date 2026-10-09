@@ -537,6 +537,7 @@ export const POST_TYPE_FIELD_TITLE = 'title'
 export const POST_TYPE_FIELD_SLUG = 'slug'
 export const POST_TYPE_FIELD_BODY = 'body'
 export const POST_TYPE_FIELD_FEATURED_MEDIA = 'featuredMedia'
+export const POST_TYPE_FIELD_PINNED = 'pinned'
 export const POST_TYPE_FIELD_SEO_TITLE = 'seoTitle'
 export const POST_TYPE_FIELD_SEO_DESCRIPTION = 'seoDescription'
 
@@ -546,6 +547,7 @@ export const POST_TYPE_MANDATORY_FIELD_IDS = [
 ] as const
 
 export const POST_TYPE_OPTIONAL_BUILTIN_FIELD_IDS = [
+  POST_TYPE_FIELD_PINNED,
   POST_TYPE_FIELD_BODY,
   POST_TYPE_FIELD_FEATURED_MEDIA,
   POST_TYPE_FIELD_SEO_TITLE,

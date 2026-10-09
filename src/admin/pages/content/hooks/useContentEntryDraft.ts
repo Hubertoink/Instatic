@@ -12,6 +12,7 @@ import {
   readSeoTitleCell,
   readSlugCell,
   readTitleCell,
+  readPinnedCell,
   stripPostTypeBuiltInCells,
 } from '@core/data/cells'
 import { slugFromTitle } from '@core/utils/slug'
@@ -40,6 +41,7 @@ export function useContentEntryDraft({
   setError,
 }: UseContentEntryDraftOptions) {
   const [title, setTitle] = useState('')
+  const [pinned, setPinned] = useState(false)
   const [slug, setSlug] = useState('')
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDescription, setSeoDescription] = useState('')
@@ -55,6 +57,7 @@ export function useContentEntryDraft({
   // needs a stable identity that react-hooks/exhaustive-deps can see.
   const applySelectedEntry = useCallback((entry: DataRow | null) => {
     setTitle(entry ? readTitleCell(entry.cells) : '')
+    setPinned(entry ? readPinnedCell(entry.cells) : false)
     setSlug(entry ? readSlugCell(entry.cells) : '')
     setSeoTitle(entry ? readSeoTitleCell(entry.cells) : '')
     setSeoDescription(entry ? readSeoDescriptionCell(entry.cells) : '')
@@ -76,6 +79,7 @@ export function useContentEntryDraft({
 
   const applyEntryFields = (entry: DataRow) => {
     setTitle(readTitleCell(entry.cells))
+    setPinned(readPinnedCell(entry.cells))
     setSlug(readSlugCell(entry.cells))
     setSeoTitle(readSeoTitleCell(entry.cells))
     setSeoDescription(readSeoDescriptionCell(entry.cells))
@@ -86,6 +90,7 @@ export function useContentEntryDraft({
   const isDirty = (() => {
     if (!selectedEntry) return false
     return title !== readTitleCell(selectedEntry.cells) ||
+      pinned !== readPinnedCell(selectedEntry.cells) ||
       slug !== readSlugCell(selectedEntry.cells) ||
       seoTitle !== readSeoTitleCell(selectedEntry.cells) ||
       seoDescription !== readSeoDescriptionCell(selectedEntry.cells) ||
@@ -105,6 +110,7 @@ export function useContentEntryDraft({
         ...selectedEntry.cells,
         ...customCells,
         title: nextTitle,
+        pinned,
         slug: nextSlug,
         body,
         featuredMedia: featuredMediaId,
@@ -184,6 +190,7 @@ export function useContentEntryDraft({
 
   return {
     title,
+    pinned,
     slug,
     seoTitle,
     seoDescription,
@@ -193,6 +200,7 @@ export function useContentEntryDraft({
     isDirty,
     saveMessage,
     setTitle,
+    setPinned,
     setSlug,
     setSeoTitle,
     setSeoDescription,

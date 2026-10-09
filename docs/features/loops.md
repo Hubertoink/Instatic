@@ -220,6 +220,25 @@ See [docs/features/plugin-system.md](plugin-system.md) and the loop-sources sect
 
 ## Filters and ordering
 
+### Pinned news and posts
+
+Post-type entries have a built-in **Keep at top** checkbox in the Content
+settings panel. Save and publish the entry to make its pinned state public.
+Existing entries without a `pinned` cell are treated as unpinned.
+
+For a `data.rows` loop using a post-type collection, enable **Pinned entries
+first** in the loop properties. This stores `filters.pinnedFirst: true` and
+puts pinned entries before other matching entries. The selected **Order by**
+and **Direction** still apply within both groups (for news, use the publication
+date field and descending order). Pinning does not change the entry's date.
+Other filters still apply: pinning does not include drafts or entries excluded
+by a condition.
+
+The priority is applied before limit, offset and pagination, consistently in
+the canvas preview, published pages and infinite-loading requests. The option
+is off by default, so existing loops keep their ordering. Data-kind tables and
+contextual relation loops are unaffected.
+
 Each source declares its filter and order options through `filterSchema` and `orderByOptions`. The editor's Properties panel renders the matching controls when a `base.loop` node is selected and its `sourceId` is set.
 
 ```ts

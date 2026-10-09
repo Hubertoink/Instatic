@@ -1598,4 +1598,21 @@ export const sqliteMigrations: Migration[] = [
              glob '[0-3][0-9].[0-1][0-9].[12][0-9][0-9][0-9]';
     `,
   },
+  {
+    id: '033_post_type_pinned',
+    sql: `
+      update data_tables
+         set fields_json = json_insert(
+               fields_json,
+               '$[#]',
+               json('{"type":"boolean","id":"pinned","label":"Keep at top","defaultValue":false,"builtIn":true}')
+             )
+       where kind = 'postType'
+         and not exists (
+               select 1
+                 from json_each(data_tables.fields_json)
+                where json_extract(value, '$.id') = 'pinned'
+             );
+    `,
+  },
 ]

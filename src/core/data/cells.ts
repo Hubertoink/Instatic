@@ -17,6 +17,7 @@ import {
   type DataTable,
   type RepeaterValue,
   POST_TYPE_FIELD_TITLE,
+  POST_TYPE_FIELD_PINNED,
 } from './schemas'
 import { dataTableHasField, isPostTypeBuiltInFieldId } from './fields'
 import { slugFromTitle } from '@core/utils/slug'
@@ -105,6 +106,10 @@ export function readDisplayTitle(
 
 export function readTitleCell(cells: DataRowCells): string {
   return readStringCell(cells, 'title')
+}
+
+export function readPinnedCell(cells: DataRowCells): boolean {
+  return readBooleanCell(cells, POST_TYPE_FIELD_PINNED)
 }
 
 export function readSlugCell(cells: DataRowCells): string {
