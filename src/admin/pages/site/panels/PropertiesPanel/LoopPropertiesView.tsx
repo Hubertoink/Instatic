@@ -106,6 +106,7 @@ export function LoopPropertiesView({ nodeId, props, activePage }: LoopProperties
             ],
           },
         }
+        if (selectedTable?.kind !== 'postType') delete schema.pinnedFirst
         if (cellFieldControl?.type === 'select') {
           schema.cellField = {
             ...cellFieldControl,

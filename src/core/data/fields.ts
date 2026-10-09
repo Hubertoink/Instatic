@@ -17,6 +17,7 @@ import {
   DataFieldSchema,
   POST_TYPE_FIELD_BODY,
   POST_TYPE_FIELD_FEATURED_MEDIA,
+  POST_TYPE_FIELD_PINNED,
   POST_TYPE_FIELD_SEO_DESCRIPTION,
   POST_TYPE_FIELD_SEO_TITLE,
   POST_TYPE_FIELD_SLUG,
@@ -220,6 +221,13 @@ export function buildPostTypeDefaultFields(): DataField[] {
       type: 'longText',
       id: POST_TYPE_FIELD_SEO_DESCRIPTION,
       label: 'SEO description',
+      builtIn: true,
+    },
+    {
+      type: 'boolean',
+      id: POST_TYPE_FIELD_PINNED,
+      label: 'Keep at top',
+      defaultValue: false,
       builtIn: true,
     },
   ]

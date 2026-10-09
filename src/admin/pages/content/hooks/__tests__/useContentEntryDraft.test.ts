@@ -53,6 +53,7 @@ describe('useContentEntryDraft custom cells', () => {
   it('hydrates customCells from the entry, excluding built-in field ids', () => {
     const { result } = renderDraft(fakeRow({
       title: 'Hello',
+      pinned: false,
       slug: 'hello',
       body: '# Hello',
       subtitle: 'World',
@@ -92,6 +93,7 @@ describe('useContentEntryDraft custom cells', () => {
     expect(patchBody).toEqual({
       cells: {
         title: 'Hello',
+        pinned: false,
         slug: 'hello',
         body: '# Hello',
         subtitle: 'Universe',
