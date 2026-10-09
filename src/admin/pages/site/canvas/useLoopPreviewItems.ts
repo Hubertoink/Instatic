@@ -262,6 +262,7 @@ export function useLoopPreviewItems(
   const cellField = typeof filters.cellField === 'string' ? filters.cellField : ''
   const cellOperator = typeof filters.cellOperator === 'string' ? filters.cellOperator : ''
   const cellValue = typeof filters.cellValue === 'string' ? filters.cellValue : ''
+  const pinnedFirst = filters.pinnedFirst === true
   const isPluginSource = sourceId !== '' && !BUILT_IN_SOURCE_IDS.has(sourceId)
 
   // Narrow, identity-stable subscriptions (see module header). Inactive
@@ -311,6 +312,7 @@ export function useLoopPreviewItems(
       cellField,
       cellOperator,
       cellValue,
+      pinnedFirst,
     })
       .then((result) => {
         if (!cancelled) setAsyncDataRowItems(result.items)
@@ -322,7 +324,7 @@ export function useLoopPreviewItems(
     return () => {
       cancelled = true
     }
-  }, [sourceId, tableId, orderBy, direction, limit, offset, cellField, cellOperator, cellValue, previewReadiness])
+  }, [sourceId, tableId, orderBy, direction, limit, offset, cellField, cellOperator, cellValue, pinnedFirst, previewReadiness])
 
   // ── Async fetch: site.media ─────────────────────────────────────────
   useEffect(() => {

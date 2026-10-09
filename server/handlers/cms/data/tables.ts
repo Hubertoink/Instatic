@@ -419,6 +419,7 @@ async function handleTableLoopPreview(
     limit,
     offset,
     cellFilter,
+    pinnedFirst: url.searchParams.get('pinnedFirst') === 'true',
   })
   return jsonResponse(result)
 }

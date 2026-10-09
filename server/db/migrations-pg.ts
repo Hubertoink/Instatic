@@ -1445,4 +1445,18 @@ export const pgMigrations: Migration[] = [
          and substr(cells_json->>'body', 21, 10) ~ '^[0-3][0-9]\\.[0-1][0-9]\\.[12][0-9]{3}$';
     `,
   },
+  {
+    id: '033_post_type_pinned',
+    sql: `
+      update data_tables
+         set fields_json = fields_json ||
+               '[{"type":"boolean","id":"pinned","label":"Keep at top","defaultValue":false,"builtIn":true}]'::jsonb
+       where kind = 'postType'
+         and not exists (
+               select 1
+                 from jsonb_array_elements(data_tables.fields_json) as field
+                where field->>'id' = 'pinned'
+             );
+    `,
+  },
 ]

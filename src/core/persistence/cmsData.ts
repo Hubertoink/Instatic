@@ -372,6 +372,7 @@ interface DataLoopPreviewOptions {
   cellField?: string
   cellOperator?: string
   cellValue?: string
+  pinnedFirst?: boolean
 }
 
 interface DataLoopPreviewResult {
@@ -397,6 +398,7 @@ export async function previewCmsDataLoopItems(
         cellField: options.cellField,
         cellOperator: options.cellOperator,
         cellValue: options.cellValue,
+        pinnedFirst: options.pinnedFirst,
       },
       schema: LoopPreviewEnvelope,
       fetchImpl,

@@ -54,6 +54,7 @@ function staleWorkspace() {
 }
 
 const draft = {
+  setPinned: () => {},
   setTitle: () => {}, setSlug: () => {}, setSeoTitle: () => {}, setSeoDescription: () => {},
   setFeaturedMediaId: () => {}, setBody: () => {}, setCustomCell: () => {}, applySelectedEntry: () => {},
 }
