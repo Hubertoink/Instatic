@@ -9,6 +9,7 @@ import { SaveSolidIcon } from 'pixel-art-icons/icons/save-solid'
 import { SendSolidIcon } from 'pixel-art-icons/icons/send-solid'
 import type { IconComponent } from 'pixel-art-icons/types'
 import type { DataTable, DataRow } from '@core/data/schemas'
+import { hasUnpublishedChanges } from '@core/data/rowStatus'
 import {
   PublishActionGroup,
   type PublishActionMenuItem,
@@ -66,6 +67,7 @@ function isCleanPublishedEntry(
 ): boolean {
   if (selectedEntry?.status !== 'published') return false
   if (isDirty) return false
+  if (hasUnpublishedChanges(selectedEntry)) return false
   return saveMessage !== 'saving' && saveMessage !== 'publishing' && saveMessage !== 'error'
 }
 
@@ -85,6 +87,7 @@ function deriveStatusText(args: {
   if (selectedEntry?.status === 'scheduled') return 'Scheduled'
   if (saveMessage === 'saved') return 'Draft saved'
   if (isCleanPublished) return 'Published'
+  if (selectedEntry?.status === 'published') return 'Unpublished changes'
   if (selectedEntry?.status === 'unpublished') return 'Unpublished'
   if (selectedEntry) return 'Draft'
   return 'No entry selected'
@@ -94,11 +97,13 @@ function deriveStatusTone(args: {
   saveMessage: SaveMessage
   isDirty: boolean
   isCleanPublished: boolean
+  selectedEntry: DataRow | null
 }): PublishActionStatusTone {
-  const { saveMessage, isDirty, isCleanPublished } = args
+  const { saveMessage, isDirty, isCleanPublished, selectedEntry } = args
   if (saveMessage === 'error') return 'danger'
   if (isDirty) return 'warning'
   if (saveMessage === 'saved' || isCleanPublished) return 'success'
+  if (selectedEntry?.status === 'published') return 'warning'
   return 'neutral'
 }
 
@@ -148,7 +153,7 @@ function deriveToolbarViewState(args: {
   const isCleanPublished = isCleanPublishedEntry(selectedEntry, isDirty, saveMessage)
   return {
     statusText: deriveStatusText({ contentLoading, saveMessage, isDirty, selectedEntry, isCleanPublished }),
-    statusTone: deriveStatusTone({ saveMessage, isDirty, isCleanPublished }),
+    statusTone: deriveStatusTone({ saveMessage, isDirty, isCleanPublished, selectedEntry }),
     publishLabel: derivePublishLabel({ saveMessage, isCleanPublished }),
     PublishIcon: derivePublishIcon({ saveMessage, isCleanPublished }),
     publishState: derivePublishState({ saveMessage, isCleanPublished }),
