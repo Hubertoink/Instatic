@@ -5,6 +5,7 @@
  * AdminWorkspaceCanvasLayout. Capability resolution mirrors ContentPage.
  */
 import { readDisplayTitle } from '@core/data/cells'
+import { hasUnpublishedChanges } from '@core/data/rowStatus'
 import { useEffect, useRef, useState } from 'react'
 import { AdminWorkspaceCanvasLayout } from '@admin/layouts/AdminWorkspaceCanvasLayout'
 import { useAuthenticatedAdminUser } from '@admin/sessionContext'
@@ -40,13 +41,6 @@ import { DataCanvas } from './components/DataCanvas/DataCanvas'
 import { DataInspector } from './components/DataInspector/DataInspector'
 import { NewTableDialog } from './components/NewTableDialog/NewTableDialog'
 import type { DataRowDraftState } from './components/DataInspector/RowDetail'
-
-function hasDraftChanges(row: DataRow): boolean {
-  if (row.status === 'scheduled') return false
-  if (row.status !== 'published') return true
-  if (row.publishedAt === null) return true
-  return new Date(row.updatedAt).getTime() > new Date(row.publishedAt).getTime()
-}
 
 // ---------------------------------------------------------------------------
 // DataPage
@@ -162,7 +156,7 @@ export function DataPage() {
         ? workspace.rows.map((row) => row.id === flushedRow.id ? flushedRow : row)
         : workspace.rows
       const publishableRows = rows.filter((row) =>
-        hasDraftChanges(row) && canPublishContentEntry(permissionUser, row),
+        hasUnpublishedChanges(row) && canPublishContentEntry(permissionUser, row),
       )
 
       for (const row of publishableRows) {
@@ -262,7 +256,7 @@ export function DataPage() {
   }
 
   const selectedTable = workspace.selectedTable
-  const rowsWithDraftChanges = workspace.rows.filter(hasDraftChanges)
+  const rowsWithDraftChanges = workspace.rows.filter(hasUnpublishedChanges)
   const activeDraftDirty = activeDraft?.isDirty ?? false
   const hasPublishableChanges = activeDraftDirty || rowsWithDraftChanges.some((row) =>
     canPublishContentEntry(permissionUser, row),
