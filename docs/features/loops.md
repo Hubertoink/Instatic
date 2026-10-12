@@ -13,6 +13,7 @@ Loop sources are pluggable: built-in sources (`data.rows`, `site.pages`, `site.m
 - `entry.field` is the contextual exception: it resolves an array on the closest `currentEntry` separately for every outer iteration, so a Project's multi-media `gallery` field can drive an inner loop.
 - The `base.loop` module's children are **variants** — different per-item layouts (e.g. "Card", "Featured"). The walker round-robins across them as it iterates.
 - At publish time, `loopPrefetch.ts` calls each loop's `fetch()` and stores results on the render context. The walker is then purely synchronous.
+- Documents containing `data.rows` loops (including loops in composed templates and referenced Visual Components) carry a content-version marker. After a row is published, republished, unpublished, deleted or moved, stale disk artefacts fall through to the versioned render cache using the published page snapshot. This refreshes complete server-rendered listings without publishing draft layouts or requiring client-side holes. A process-instance identifier prevents persisted artefacts from matching a reset version counter after a restart; pages without these loops retain their disk fast-path.
 - Each iteration renders against a fresh `entryStack` snapshot (`[...baseStack, item]`) carried in a child `RenderConfig`; nodes inside the loop resolve `currentEntry.<field>` against that item via dynamic bindings. The stack is never mutated in place.
 
 ---
