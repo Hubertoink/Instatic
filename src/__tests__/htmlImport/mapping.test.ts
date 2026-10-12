@@ -1325,6 +1325,16 @@ describe('base.outlet — <instatic-outlet>', () => {
 // ---------------------------------------------------------------------------
 
 describe('base.loop — <instatic-loop>', () => {
+  it('imports pinned-first as an explicit opt-in only for data-row sources', () => {
+    const pinned = single('<instatic-loop data-source-id="data.rows" data-table-id="news" data-pinned-first="true"><p>{currentEntry.title}</p></instatic-loop>')
+    expect(pinned.props.filters).toEqual({ tableId: 'news', pinnedFirst: true })
+    const defaultOrder = single('<instatic-loop data-source-id="data.rows" data-table-id="news"><p>{currentEntry.title}</p></instatic-loop>')
+    expect(defaultOrder.props.filters).toEqual({ tableId: 'news' })
+    const disabled = single('<instatic-loop data-source-id="data.rows" data-pinned-first="false"><p>Row</p></instatic-loop>')
+    expect(disabled.props.filters).toEqual({})
+    const contextual = single('<instatic-loop data-source-id="entry.field" data-field-id="weeklySlots" data-pinned-first="true"><p>Slot</p></instatic-loop>')
+    expect(contextual.props.filters).toEqual({ fieldId: 'weeklySlots' })
+  })
   it('preserves nested relation and repeater field selections and authored order', () => {
     const result = importHtml(`
       <instatic-loop data-source-id="data.rows" data-table-id="offers">

@@ -147,7 +147,11 @@ function mapLoopProps(el: Element): Record<string, unknown> {
   const tag = attr(el, 'data-tag')
   return {
     sourceId,
-    filters: { ...(tableId ? { tableId } : {}), ...(fieldId ? { fieldId } : {}) },
+    filters: {
+      ...(tableId ? { tableId } : {}),
+      ...(fieldId ? { fieldId } : {}),
+      ...(sourceId === 'data.rows' && normalizedAttr(el, 'data-pinned-first') === 'true' ? { pinnedFirst: true } : {}),
+    },
     orderBy: attr(el, 'data-order-by'),
     direction: direction === 'asc' || direction === 'desc'
       ? direction : sourceId === 'entry.field' ? 'asc' : 'desc',
