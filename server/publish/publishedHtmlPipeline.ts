@@ -37,9 +37,16 @@ import {
 import { stampFormPageTokens } from '../forms/formRuntime'
 import { injectModuleScripts } from './moduleJsBundle'
 import type { RendererOutput } from './publicRenderer'
+import { getPublishInstanceId } from './publishState'
 
 /** What the pipeline reads of a render; the CSS bundle is the bake's concern. */
 export type PublishedHtmlPipelineInput = Omit<RendererOutput, 'cssBundle'>
+
+export function isPublishedHtmlCurrent(html: string, publishVersion: number): boolean {
+  const prefix = '<!-- instatic:content-version='
+  return !html.startsWith(prefix)
+    || html.startsWith(`${prefix}${getPublishInstanceId()}:${publishVersion} -->`)
+}
 
 export async function applyPublishedHtmlPipeline(
   rendered: PublishedHtmlPipelineInput,
@@ -70,5 +77,9 @@ export async function applyPublishedHtmlPipeline(
     siteId: rendered.siteId,
     pageId: rendered.pageId,
   })
-  return filtered
+  // Layer A has no DB lookup. Stamp content-backed renders so a later row
+  // publish cannot serve an older listing while Layer B has already refreshed.
+  return rendered.contentDependent
+    ? `<!-- instatic:content-version=${getPublishInstanceId()}:${rendered.publishVersion} -->${filtered}`
+    : filtered
 }

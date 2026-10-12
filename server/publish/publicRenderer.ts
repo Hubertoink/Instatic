@@ -10,6 +10,7 @@ import type { TemplateRenderDataContext } from '@core/templates/dynamicBindings'
 import { prefetchLoopData, publishedDataRowToLoopItem } from './loopPrefetch'
 import { prefetchMediaAssets } from './mediaPrefetch'
 import { getPublishVersion } from './publishState'
+import { walkRenderTree } from './renderTreeWalk'
 import type { Page } from '@core/page-tree'
 import type { DocumentMetaOverride, SiteCssBundle } from '@core/publisher'
 import type { PublishedDataRow } from '@core/data/schemas'
@@ -54,6 +55,8 @@ export interface RendererOutput {
    * URLs so they cache-bust in lockstep with hole placeholders.
    */
   publishVersion: number
+  /** Database-backed loops must refresh after content publication or retraction. */
+  contentDependent?: boolean
   /**
    * The CSS bundle this render's HTML actually references (`<link href>`
    * hashes). The publish-time bake writes these exact files into the slot so
@@ -92,7 +95,7 @@ async function renderMergedTemplate(
   templateContext: TemplateRenderDataContext | undefined,
   ctx: RenderPublishedSnapshotContext,
   documentMeta?: DocumentMetaOverride,
-): Promise<{ html: string; jsModuleIds: string[]; publishVersion: number; cssBundle: SiteCssBundle }> {
+): Promise<{ html: string; jsModuleIds: string[]; publishVersion: number; contentDependent: boolean; cssBundle: SiteCssBundle }> {
   const publishVersion = ctx.publishVersion ?? getPublishVersion()
   const moduleJsMap = buildPublishedSiteModuleJsMap(snapshot.site, registry)
   const loopData = await prefetchLoopData(merged, snapshot.site, ctx.db, ctx.url, { entryStack: templateContext?.entryStack })
@@ -118,7 +121,11 @@ async function renderMergedTemplate(
   // subtrees) ∩ the site module-JS map — over-inclusive candidates from
   // unbaked holes are filtered down to modules that actually ship JS.
   const jsModuleIds = published.jsModuleIds.filter((id) => moduleJsMap.has(id))
-  return { html: published.html, jsModuleIds, publishVersion, cssBundle }
+  let contentDependent = false
+  walkRenderTree(merged.nodes, merged.rootNodeId, snapshot.site, (node) => {
+    if (node.moduleId === 'base.loop' && node.props.sourceId === 'data.rows') contentDependent = true
+  })
+  return { html: published.html, jsModuleIds, publishVersion, contentDependent, cssBundle }
 }
 
 export async function renderPublishedSnapshot(
