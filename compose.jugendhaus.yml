@@ -1,0 +1,6 @@
+name: jhvogelstang
+
+services:
+  app:
+    ports: !override
+      - "127.0.0.1:3015:3001"
