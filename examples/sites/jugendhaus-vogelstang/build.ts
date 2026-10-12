@@ -2,6 +2,8 @@ import { join } from 'node:path'
 import { zipSync } from 'fflate'
 
 const directory = import.meta.dir
+export const iconFontPath = 'assets/tabler-contact-3.49.0.woff2'
+export const templateAssets = ['assets/stage.svg', iconFontPath, 'assets/tabler-icons-LICENSE.txt']
 const navigation = [
   ['index', 'Start'],
   ['wochenprogramm', 'Wochenprogramm'],
@@ -16,9 +18,9 @@ const escape = (value: string) => value.replace(/[&<>"']/g, (character) => ({
 
 function contactChannels() {
   return `<nav class="contact-channels" aria-label="Kontaktiere das Team">
-    <a class="contact-channel" href="mailto:jugendhaus.vogelstang@mannheim.de" aria-label="Schreib uns eine E-Mail"><span class="channel-icon icon-mail" aria-hidden="true"></span><span>Mail</span></a>
-    <a class="contact-channel" href="https://www.instagram.com/jugendhausvogelstang/" target="_blank" rel="noopener noreferrer" aria-label="Jugendhaus auf Instagram öffnen (neuer Tab)"><span class="channel-icon icon-instagram" aria-hidden="true"></span><span>Instagram</span></a>
-    <a class="contact-channel" href="tel:+496212938285" aria-label="Ruf das Jugendhaus an"><span class="channel-icon icon-phone" aria-hidden="true"></span><span>Telefon</span></a>
+    <a class="contact-channel" href="mailto:jugendhaus.vogelstang@mannheim.de" aria-label="Schreib uns eine E-Mail"><span class="channel-icon ti-mail" aria-hidden="true"></span><span>Mail</span></a>
+    <a class="contact-channel" href="https://www.instagram.com/jugendhausvogelstang/" target="_blank" rel="noopener noreferrer" aria-label="Jugendhaus auf Instagram öffnen (neuer Tab)"><span class="channel-icon ti-brand-instagram" aria-hidden="true"></span><span>Instagram</span></a>
+    <a class="contact-channel" href="tel:+496212938285" aria-label="Ruf das Jugendhaus an"><span class="channel-icon ti-phone" aria-hidden="true"></span><span>Telefon</span></a>
   </nav>`
 }
 
@@ -69,7 +71,6 @@ function footer() {
         <span class="flying-badge badge-symbol badge-symbol-three">+</span>
       </div>
     </div>
-    <button class="motion-toggle" type="button" aria-pressed="false">Footer-Animation pausieren</button>
   </footer>`
 }
 
@@ -231,7 +232,7 @@ pages.barrierefreiheit = {
   title: 'Barrierefreiheit', description: 'Zugänglichkeit, Rückmeldung und Kontakt zur Barrierefreiheit der neuen Jugendhaus-Website.',
   content: legalContent('Für alle da.', 'Informationen zur<br>digitalen Barrierefreiheit.', [
     ['Geltungsbereich und Prüfstatus', '<p>Diese Erklärung ist für die neue Website des Jugendhaus Vogelstang vorgesehen. Die produktive Internetadresse ist vor Veröffentlichung einzutragen. Maßgeblich sind die für den öffentlichen Betreiber geltenden Anforderungen, insbesondere das Landes-Behindertengleichstellungsgesetz Baden-Württemberg.</p><p><strong>Noch nicht abschließend geprüft:</strong> Ein formaler Konformitätsstatus wird nicht behauptet. Die Bewertung der bisherigen Website lässt sich nicht auf dieses neue Design übertragen. Vor Freigabe sind die anwendbaren Anforderungen, Prüfmethoden, Prüfergebnisse und das Prüfdatum festzuhalten.</p>'],
-    ['Unterstützung bei der Nutzung', '<p>Die Vorlage bietet semantische Seitenbereiche, einen Sprunglink zum Hauptinhalt, sichtbare Tastaturfokusse und eine per Tastatur bedienbare Navigation. Das Layout passt sich an schmale Bildschirme an. Die rein dekorativen Footer-Badges sind für Screenreader ausgeblendet.</p><p>Die Footer-Animation lässt sich über einen Schalter pausieren. Ist auf deinem Gerät reduzierte Bewegung eingestellt, bleiben die Badges von Anfang an unbewegt. Diese Funktionen ersetzen keine vollständige Barrierefreiheitsprüfung.</p>'],
+    ['Unterstützung bei der Nutzung', '<p>Die Vorlage bietet semantische Seitenbereiche, einen Sprunglink zum Hauptinhalt, sichtbare Tastaturfokusse und eine per Tastatur bedienbare Navigation. Das Layout passt sich an schmale Bildschirme an. Die rein dekorativen Footer-Badges sind für Screenreader ausgeblendet.</p><p>Ist auf deinem Gerät reduzierte Bewegung eingestellt, bleiben die Badges von Anfang an unbewegt. Diese Funktionen ersetzen keine vollständige Barrierefreiheitsprüfung.</p>'],
     ['Noch zu prüfen und zu verbessern', '<p>Vor dem öffentlichen Start sind unter anderem Farbkontraste, Vergrößerung, Tastaturbedienung, Screenreader-Nutzung, verständliche Texte und alternative Bildbeschreibungen zu prüfen. Später hochgeladene Dokumente, Videos oder neue Farben müssen ebenfalls überprüft werden. Bekannte Einschränkungen und ein Zeitplan für ihre Behebung sind nach der Prüfung konkret hier zu dokumentieren.</p>'],
     ['Barrieren melden', '<p>Wenn du eine Barriere bemerkst oder Informationen in einer besser zugänglichen Form benötigst, melde dich beim Jugendhaus:</p><p><a href="mailto:jugendhaus.vogelstang@mannheim.de?subject=Barriere%20auf%20der%20Website">jugendhaus.vogelstang@mannheim.de</a><br><a href="tel:+496212938285">0621 / 293 82 85</a></p><p>Nenne möglichst die betroffene Seite und beschreibe das Problem. Eine zuständige Ansprechstelle und das verbindliche Rückmeldeverfahren müssen durch den Betreiber bestätigt werden.</p>'],
     ['Schlichtungsverfahren', '<p>Wenn eine Rückmeldung zur Barrierefreiheit nicht zufriedenstellend beantwortet wird, kommt ein Schlichtungsverfahren beim Landeszentrum Barrierefreiheit Baden-Württemberg in Betracht. Voraussetzungen und Kontaktdaten sind vor der Freigabe zu prüfen.</p><p>Landeszentrum Barrierefreiheit · Schlichtungsstelle<br>Else-Josenhans-Straße 6 · 70173 Stuttgart<br>Telefon: 0711 / 123 39375<br>E-Mail: <a href="mailto:schlichtung@barrierefreiheit.bwl.de">schlichtung@barrierefreiheit.bwl.de</a><br><a href="https://barrierefreiheit-bw.de/">Informationen zum Schlichtungsverfahren</a></p>'],
@@ -310,7 +311,7 @@ if (import.meta.main) {
   const rendered = renderStaticPages()
   for (const [slug, html] of Object.entries(rendered)) await Bun.write(join(directory, `${slug}.html`), html)
   const bundle: Record<string, Uint8Array> = {}
-  for (const file of [...Object.keys(rendered).map((slug) => `${slug}.html`), 'style.css', 'site.js', 'assets/stage.svg']) {
+  for (const file of [...Object.keys(rendered).map((slug) => `${slug}.html`), 'style.css', 'site.js', ...templateAssets]) {
     bundle[file] = new Uint8Array(await Bun.file(join(directory, file)).arrayBuffer())
   }
   await Bun.write(join(directory, 'jugendhaus-vogelstang.zip'), zipSync(bundle))

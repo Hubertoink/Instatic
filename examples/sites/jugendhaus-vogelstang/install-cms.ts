@@ -15,7 +15,7 @@ import {
   linkImportedClassNames,
 } from '../../../src/admin/pages/site/store/slices/site/importLinking'
 import { CmsMediaAssetEnvelopeSchema, CmsMediaListResponseSchema } from '../../../src/core/persistence/responseSchemas'
-import { events, news, offers, renderCmsPages } from './build'
+import { events, news, offers, renderCmsPages, iconFontPath, templateAssets } from './build'
 import { configureJugendhausFramework } from './framework'
 
 const baseUrl = new URL(process.env.CMS_URL ?? 'http://localhost:3015')
@@ -75,16 +75,17 @@ for (const specification of specifications) {
 }
 
 const { assets = [] } = await request('/media', CmsMediaListResponseSchema)
-async function upload(filename: string, source: string) {
+async function upload(filename: string, source: string | ArrayBuffer, type = 'image/svg+xml') {
   const existing = assets.find((asset) => asset.filename === filename)
   if (existing) return existing
   const form = new FormData()
-  form.set('file', new File([source], filename, { type: 'image/svg+xml' }))
+  form.set('file', new File([source], filename, { type }))
   const { asset } = await request('/media', CmsMediaAssetEnvelopeSchema, 'POST', form)
   assets.push(asset)
   return asset
 }
 const stage = await upload('stage.svg', await Bun.file(join(directory, 'assets', 'stage.svg')).text())
+const iconFont = await upload('tabler-contact-3.49.0.woff2', await Bun.file(join(directory, iconFontPath)).arrayBuffer(), 'font/woff2')
 const poster = async (index: number) => {
   const offer = offers[index]
   const lines = offer.word.split('<br>')
@@ -139,7 +140,7 @@ const fileMap: FileMap = { files: {} }
 const encoder = new TextEncoder()
 for (const [slug, source] of Object.entries(rendered)) fileMap.files[`${slug}.html`] = { bytes: encoder.encode(source) }
 for (const filename of ['style.css', 'site.js']) fileMap.files[filename] = { bytes: new Uint8Array(await Bun.file(join(directory, filename)).arrayBuffer()) }
-fileMap.files['assets/stage.svg'] = { bytes: new Uint8Array(await Bun.file(join(directory, 'assets', 'stage.svg')).arrayBuffer()) }
+for (const path of templateAssets) fileMap.files[path] = { bytes: new Uint8Array(await Bun.file(join(directory, path)).arrayBuffer()) }
 const plan = buildImportPlan({ fileMap, currentSite: site, options: { stylesheetModes: { 'style.css': 'file' } } })
 if (plan.warnings.length) throw new Error(`Import warnings: ${JSON.stringify(plan.warnings)}`)
 const pageIds = new Map(plan.pages.map((page) => [page.source, oldPages.find((existing) => existing.slug === page.slug)?.id ?? nanoid()]))
@@ -169,6 +170,10 @@ for (const [path, type] of [['style.css', 'style'], ['site.js', 'script']] as co
     site.files.push(file)
   }
   file.content = await Bun.file(join(directory, path)).text()
+  if (type === 'style') {
+    if (!file.content.includes(iconFontPath)) throw new Error('Icon font missing from stylesheet')
+    file.content = file.content.replaceAll(iconFontPath, iconFont.publicPath)
+  }
   file.updatedAt = now
   const scope = { type: 'pages', pageIds: allPageIds } as const
   if (type === 'style') site.runtime.styles[file.id] = { enabled: true, priority: 100, scope }

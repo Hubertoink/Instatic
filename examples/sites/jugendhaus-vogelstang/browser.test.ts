@@ -28,6 +28,20 @@ afterAll(async () => {
 })
 
 describe('Jugendhaus Vogelstang browser verification', () => {
+  it('loads the self-hosted Tabler icon font in the static export and published site', async () => {
+    const page = await browser.newPage()
+    try {
+      await page.goto(links[3])
+      const fonts = await page.evaluate(async () => {
+        const loaded = await document.fonts.load('22px "Tabler Contact"', '\ueae5\ueb09\uec20')
+        return loaded.map((font) => font.status)
+      })
+      expect(fonts).toEqual(['loaded'])
+    } finally {
+      await page.close()
+    }
+  })
+
   for (const width of [1440, 375, 320]) {
     for (const [index, label] of labels.entries()) {
       it(`${label}: renders at ${width}px without overflow, missing assets or runtime errors`, async () => {
@@ -48,6 +62,7 @@ describe('Jugendhaus Vogelstang browser verification', () => {
           })
           expect(await page.locator('h1').count()).toBe(1)
           expect(await page.locator('#kontakt').count()).toBe(1)
+          expect(await page.getByRole('button', { name: /^Footer-Animation (pausieren|fortsetzen)$/ }).count()).toBe(0)
           const layout = await page.evaluate(() => ({
             viewport: innerWidth,
             width: document.documentElement.scrollWidth,
@@ -145,7 +160,7 @@ describe('Jugendhaus Vogelstang browser verification', () => {
     })
   }
 
-  it('animates original footer badges with a working keyboard-accessible pause button', async () => {
+  it('keeps footer badges flying without a pause button', async () => {
     const page = await browser.newPage()
     try {
       await page.goto(homeUrl)
@@ -153,12 +168,9 @@ describe('Jugendhaus Vogelstang browser verification', () => {
       expect(await page.locator('.flying-badge').count()).toBe(6)
       expect(await page.locator('.footer-badges').getAttribute('aria-hidden')).toBe('true')
       expect(await badge.evaluate((element) => getComputedStyle(element).animationName)).toBe('badge-flight')
-      const toggle = page.getByRole('button', { name: 'Footer-Animation pausieren', exact: true })
-      await toggle.focus()
-      await page.keyboard.press('Enter')
-      expect(await badge.evaluate((element) => getComputedStyle(element).animationPlayState)).toBe('paused')
-      await page.keyboard.press('Enter')
       expect(await badge.evaluate((element) => getComputedStyle(element).animationPlayState)).toBe('running')
+      expect(await badge.evaluate((element) => getComputedStyle(element).animationIterationCount)).toBe('infinite')
+      expect(await page.getByRole('button', { name: /^Footer-Animation (pausieren|fortsetzen)$/ }).count()).toBe(0)
     } finally {
       await page.close()
     }
@@ -169,7 +181,7 @@ describe('Jugendhaus Vogelstang browser verification', () => {
     try {
       await page.goto(homeUrl)
       expect(await page.locator('.flying-badge').first().evaluate((element) => getComputedStyle(element).animationName)).toBe('none')
-      expect(await page.locator('.motion-toggle').isVisible()).toBe(false)
+      expect(await page.locator('.motion-toggle').count()).toBe(0)
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
       await page.getByRole('button', { name: 'Menü', exact: true }).click()
       expect(await page.locator('#navigation').evaluate((element) => getComputedStyle(element).transitionDuration)).toBe('0s')
@@ -183,7 +195,7 @@ describe('Jugendhaus Vogelstang browser verification', () => {
     try {
       await page.goto(homeUrl)
       expect(await page.locator('.flying-badge').first().evaluate((element) => getComputedStyle(element).animationPlayState)).toBe('paused')
-      expect(await page.locator('.motion-toggle').isVisible()).toBe(false)
+      expect(await page.locator('.motion-toggle').count()).toBe(0)
       expect(await page.getByRole('navigation', { name: 'Hauptnavigation' }).getByRole('link').count()).toBe(7)
       expect(await page.getByRole('navigation', { name: 'Hauptnavigation' }).getByRole('link', { name: 'Team', exact: true }).isVisible()).toBe(true)
       await page.getByRole('navigation', { name: 'Rechtliche Informationen' }).getByRole('link', { name: 'Datenschutz', exact: true }).click()
@@ -204,10 +216,22 @@ describe('Jugendhaus Vogelstang browser verification', () => {
             if (!href) throw new Error(`Missing detail link for ${label}`)
             await page.goto(new URL(href, homeUrl).href)
             const channels = page.getByRole('navigation', { name: 'Kontaktiere das Team' })
+            expect(await page.getByRole('button', { name: /^Footer-Animation (pausieren|fortsetzen)$/ }).count()).toBe(0)
             expect(await channels.getByRole('link').count()).toBe(3)
             expect(await channels.getByRole('link', { name: 'Schreib uns eine E-Mail', exact: true }).getAttribute('href')).toBe('mailto:jugendhaus.vogelstang@mannheim.de')
             expect(await channels.getByRole('link', { name: 'Ruf das Jugendhaus an', exact: true }).getAttribute('href')).toBe('tel:+496212938285')
             expect(await channels.getByRole('link', { name: 'Jugendhaus auf Instagram öffnen (neuer Tab)', exact: true }).getAttribute('href')).toBe('https://www.instagram.com/jugendhausvogelstang/')
+            const fonts = await page.evaluate(async () => {
+              const loaded = await document.fonts.load('22px "Tabler Contact"', '\ueae5\ueb09\uec20')
+              return loaded.map((font) => font.status)
+            })
+            expect(fonts).toEqual(['loaded'])
+            for (const [name, glyph] of [['mail', '\ueae5'], ['brand-instagram', '\uec20'], ['phone', '\ueb09']]) {
+              const icon = channels.locator(`.ti-${name}`)
+              expect(await icon.getAttribute('aria-hidden')).toBe('true')
+              expect(await icon.evaluate((element) => getComputedStyle(element, '::before').content)).toContain(glyph)
+              expect(await icon.evaluate((element) => getComputedStyle(element).fontFamily)).toContain('Tabler Contact')
+            }
             for (const channel of await channels.getByRole('link').all()) {
               const size = await channel.boundingBox()
               expect(size?.width).toBeGreaterThanOrEqual(44)

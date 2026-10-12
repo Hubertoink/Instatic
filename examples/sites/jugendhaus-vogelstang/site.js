@@ -58,14 +58,3 @@ for (const button of filters) {
   });
 }
 if (filterStatus) filterStatus.textContent = `${slots.length} Programmeinträge angezeigt.`;
-
-const motionToggle = document.querySelector('.motion-toggle');
-const footer = document.querySelector('.contact');
-if (motionToggle && footer) {
-  motionToggle.addEventListener('click', () => {
-    const paused = motionToggle.getAttribute('aria-pressed') !== 'true';
-    motionToggle.setAttribute('aria-pressed', String(paused));
-    footer.classList.toggle('motion-paused', paused);
-    motionToggle.textContent = paused ? 'Footer-Animation fortsetzen' : 'Footer-Animation pausieren';
-  });
-}

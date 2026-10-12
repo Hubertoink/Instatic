@@ -145,16 +145,26 @@ Der HTML-Import unterstützt dafür `data-pinned-first="true"` an `data.rows`-Lo
 
 ## Footer-Badges und eigene Informationsseiten
 
-Sechs eigens gestaltete, dekorative Badges schweben über **VOGELSTANG**. Ein
-Tastaturschalter pausiert und setzt die Animation fort. Bei reduzierter Bewegung
+Sechs eigens gestaltete, dekorative Badges schweben dauerhaft über **VOGELSTANG**.
+Auf Wunsch gibt es keinen sichtbaren Pause-Schalter. Bei reduzierter Bewegung
 bleiben sie unbewegt; ohne JavaScript laufen sie ebenfalls nicht. Für
-Screenreader sind die dekorativen Badges ausgeblendet.
+Screenreader sind die dekorativen Badges ausgeblendet. Die dauerhafte Bewegung
+ohne Pause-Schalter muss bei der Barrierefreiheitsprüfung berücksichtigt werden.
 
 Angebots-, Veranstaltungs- und News-Detailseiten bieten statt einer einzelnen
 Kontakt-Schaltfläche drei direkte Kanäle: **Mail, Instagram und Telefon**.
-Die Icons sind rein dekorative CSS-Zeichnungen ohne externe Bilddienste;
-sichtbare Kanalnamen und zugängliche Linkbeschriftungen bleiben erhalten.
+Die Icons **Mail, Brand Instagram und Phone** stammen aus **Tabler Icons 3.49.0**
+(`@tabler/icons-webfont`, MIT-Lizenz). Sie werden als echte Icon-Schrift lokal
+eingebunden, nicht als SVGs oder nachgezeichnete CSS-Formen. Die WOFF2-Datei
+enthält nur die drei benötigten Glyphen und ist 888 Bytes groß. Kein CDN,
+zusätzliches JavaScript oder React-Icon-Paket ist notwendig.
+Sichtbare Kanalnamen und zugängliche Linkbeschriftungen bleiben erhalten.
 Die Schaltflächen sind auch auf dem Smartphone mindestens 44 × 44 Pixel groß.
+Die Lizenz liegt unter `assets/tabler-icons-LICENSE.txt` und ist im ZIP enthalten.
+Die Schrift stammt aus `dist/fonts/tabler-icons.woff2` des genannten Pakets;
+FontTools 4.66.1 hat sie mit `--unicodes=U+EAE5,U+EB09,U+EC20`,
+`--flavor=woff2` und `--no-recalc-timestamp` reduziert. Python wird nur für eine erneute Erstellung
+der Schrift benötigt, nicht für Website, Generator oder Installer.
 
 Die Footer-Links führen auf eigene CMS-Seiten:
 `/impressum`, `/datenschutz` und `/barrierefreiheit`. Die Texte sind eigenständig

@@ -5,7 +5,7 @@ import { unzipSync } from 'fflate'
 import '@modules/base'
 import { buildImportPlan, type FileMap } from '@core/siteImport'
 import { DEFAULT_BREAKPOINTS, parseSiteDocument } from '@core/page-tree'
-import { renderCmsPages } from './build'
+import { renderCmsPages, iconFontPath, templateAssets } from './build'
 import { configureJugendhausFramework, brandColors } from './framework'
 import { generateFrameworkRootCss } from '@core/framework'
 
@@ -26,9 +26,9 @@ function runSiteScript(dom: JSDOM) {
 }
 
 describe('Jugendhaus Vogelstang static template', () => {
-  it('contains exactly nine complete German pages and three self-contained assets', () => {
+  it('contains exactly nine complete German pages and all self-contained assets', () => {
     expect(Object.keys(archive).sort()).toEqual([
-      ...slugs.map((slug) => `${slug}.html`), 'style.css', 'site.js', 'assets/stage.svg',
+      ...slugs.map((slug) => `${slug}.html`), 'style.css', 'site.js', ...templateAssets,
     ].sort())
     for (const slug of slugs) {
       const dom = new JSDOM(html(slug))
@@ -45,6 +45,8 @@ describe('Jugendhaus Vogelstang static template', () => {
       expect(document.querySelector('#main .eyebrow, .section-index, .demo-note, .example-badge') === null).toBe(true)
       expect(document.querySelectorAll('.footer-links a')).toHaveLength(3)
       expect(document.querySelectorAll('.flying-badge')).toHaveLength(6)
+      expect(document.querySelector('.motion-toggle')).toBeNull()
+      expect(document.body.textContent).not.toContain('Footer-Animation pausieren')
       dom.window.close()
     }
   })
@@ -84,8 +86,25 @@ describe('Jugendhaus Vogelstang static template', () => {
     expect(plan.stylesheets).toHaveLength(1)
     expect(plan.scripts).toHaveLength(1)
     expect(plan.assets.map((asset) => asset.sourcePath)).toContain('assets/stage.svg')
+    expect(plan.assets.map((asset) => asset.sourcePath)).toContain(iconFontPath)
     expect(plan.warnings).toEqual([])
     for (const page of plan.pages) expect(Object.keys(page.nodeFragment.nodes).length).toBeGreaterThan(40)
+  })
+
+  it('bundles the licensed Tabler contact icon font instead of SVGs or drawn CSS shapes', () => {
+    expect(decoder.decode(archive[iconFontPath].slice(0, 4))).toBe('wOF2')
+    expect(archive[iconFontPath].byteLength).toBeLessThan(4096)
+    expect(decoder.decode(archive['assets/tabler-icons-LICENSE.txt'])).toContain('MIT License')
+    const css = decoder.decode(archive['style.css'])
+    expect(css).toContain(`url("${iconFontPath}")`)
+    expect(css).toContain('.ti-mail::before')
+    expect(css).toContain('.ti-brand-instagram::before')
+    expect(css).toContain('.ti-phone::before')
+    expect(css).not.toContain('.icon-phone')
+    const dom = new JSDOM(html('angebote'))
+    expect(dom.window.document.querySelector('.contact-channels svg')).toBeNull()
+    expect(dom.window.document.querySelector('.contact-channels .ti-mail')).not.toBeNull()
+    dom.window.close()
   })
 
   it('filters all nine weekly entries and restores the unfiltered programme', () => {
@@ -169,17 +188,13 @@ describe('Jugendhaus Vogelstang static template', () => {
     expect(decoder.decode(archive['style.css'])).toContain('--lime: var(--jhv-primary, #c5ff46)')
   })
 
-  it('pauses and resumes decorative footer motion', () => {
+  it('omits the footer pause control and obsolete event handlers', () => {
     const dom = new JSDOM(html('index'), { runScripts: 'outside-only' })
     runSiteScript(dom)
-    const button = dom.window.document.querySelector<HTMLButtonElement>('.motion-toggle')!
-    expect(button.hidden).toBe(false)
-    button.click()
-    expect(button.getAttribute('aria-pressed')).toBe('true')
-    expect(dom.window.document.querySelector('.contact')!.classList.contains('motion-paused')).toBe(true)
-    button.click()
-    expect(button.getAttribute('aria-pressed')).toBe('false')
-    expect(dom.window.document.querySelector('.contact')!.classList.contains('motion-paused')).toBe(false)
+    expect(dom.window.document.querySelector('.motion-toggle')).toBeNull()
+    expect(decoder.decode(archive['site.js'])).not.toContain('motionToggle')
+    expect(decoder.decode(archive['style.css'])).not.toContain('.motion-toggle')
+    expect(html('barrierefreiheit')).not.toContain('über einen Schalter pausieren')
     dom.window.close()
   })
 
