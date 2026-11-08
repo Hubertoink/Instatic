@@ -57,7 +57,7 @@ describe('AI-layer row reads go through the shared row-access rules', () => {
   it('no file under server/ai reads a row with a bare getDataRow()', async () => {
     const offenders: string[] = []
     for (const file of await tsFilesIn(AI_ROOT)) {
-      const rel = relative(ROOT, file)
+      const rel = relative(ROOT, file).replaceAll('\\', '/')
       if (ALLOWLIST.has(rel)) continue
       const code = stripNonCode(await readFile(file, 'utf-8'))
       if (BARE_GET_ROW.test(code)) offenders.push(rel)
