@@ -696,7 +696,7 @@ describe('base.image — render() specifics', () => {
     // is sourced from the library asset row (single source of truth) — no
     // per-instance `alt` prop exists on the module.
     expect(Object.keys(ImageModule.schema).sort()).toEqual(
-      ['decoding', 'fetchPriority', 'htmlAttributes', 'loading', 'src'],
+      ['decoding', 'fetchPriority', 'htmlAttributes', 'lightbox', 'loading', 'src'],
     )
   })
 
