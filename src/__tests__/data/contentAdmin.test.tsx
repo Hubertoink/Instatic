@@ -55,6 +55,7 @@ const allBuiltInFields = [
   { type: 'media', id: 'featuredMedia', label: 'Featured media', mediaKind: 'image', builtIn: true },
   { type: 'text', id: 'seoTitle', label: 'SEO title', builtIn: true },
   { type: 'longText', id: 'seoDescription', label: 'SEO description', builtIn: true },
+  { type: 'boolean', id: 'pinned', label: 'Keep at top', defaultValue: false, builtIn: true },
 ]
 
 const titleOnlyFields = [
@@ -1326,6 +1327,7 @@ describe('ContentPage', () => {
         featuredMedia: null,
         seoTitle: '',
         seoDescription: '',
+        pinned: false,
       },
     }))
     expect(calls.some((call) =>
@@ -1444,6 +1446,7 @@ describe('ContentPage', () => {
         { type: 'media', id: 'featuredMedia', label: 'Featured media', mediaKind: 'image', builtIn: true },
         { type: 'text', id: 'seoTitle', label: 'SEO title', builtIn: true },
         { type: 'longText', id: 'seoDescription', label: 'SEO description', builtIn: true },
+        { type: 'boolean', id: 'pinned', label: 'Keep at top', defaultValue: false, builtIn: true },
       ],
     }))
     expect(calls.some((call) =>
@@ -1687,6 +1690,7 @@ describe('ContentPage', () => {
           featuredMedia: null,
           seoTitle: '',
           seoDescription: '',
+          pinned: false,
         },
       })
     )).toBe(true)
@@ -1849,6 +1853,7 @@ describe('ContentPage', () => {
         featuredMedia: null,
         seoTitle: '',
         seoDescription: '',
+        pinned: false,
       },
     }))
   })
@@ -1904,6 +1909,7 @@ describe('ContentPage', () => {
         featuredMedia: imageAsset.id,
         seoTitle: '',
         seoDescription: '',
+        pinned: false,
       },
     }))
     expect(calls.some((call) =>

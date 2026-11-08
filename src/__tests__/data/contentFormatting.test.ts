@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { markdownToProseMirrorDoc, proseMirrorDocToMarkdown, type JSONNode } from '@core/markdown/markdownDocument'
+import { markdownToProseMirrorDoc, proseMirrorDocToMarkdown } from '@core/markdown/markdownDocument'
+import type { JSONNode } from '@core/markdown/documentNodes'
 import { renderMarkdownToHtml } from '@core/markdown/renderMarkdown'
 import { sanitizeRichtext } from '@core/sanitize'
 

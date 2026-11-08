@@ -26,27 +26,12 @@
 
 import { Marked, type Tokens, type Token } from 'marked'
 import { alignedBlock, serializeAlignedBlock } from './alignedBlock'
-import { mediaNode, parseMediaImageTitle, serializeMediaImageTitle, escapeImageTitle, mediaSizeAttr, booleanAttr, type MediaImagePresentation } from './mediaImagePresentation'
+import { normalizeMediaImageSize, parseMediaImageTitle, serializeMediaImageTitle, escapeImageTitle, type MediaImagePresentation } from './mediaImagePresentation'
 
-// ---------------------------------------------------------------------------
-// ProseMirror JSON shape (just enough — we don't pull in @tiptap/pm here so
-// this module stays usable from non-DOM contexts like Bun tests)
-// ---------------------------------------------------------------------------
-
-interface JSONMark {
-  type: string
-  attrs?: Record<string, unknown>
-}
-
-export interface JSONNode {
-  type: string
-  attrs?: Record<string, unknown>
-  content?: JSONNode[]
-  marks?: JSONMark[]
-  text?: string
-}
+import { mediaNode, type JSONMark, type JSONNode } from './documentNodes'
 
 type DocNode = JSONNode & { type: 'doc' }
+
 
 // ---------------------------------------------------------------------------
 // Marked configuration — single instance, no globals.
@@ -532,8 +517,8 @@ function blockNodeToMarkdown(node: JSONNode): string {
       if (mediaType === 'video') return `@[video](${src})`
       const alt = stringAttr(node, 'alt', '')
       const presentation: MediaImagePresentation = {
-        size: mediaSizeAttr(node, 'size'),
-        lightbox: booleanAttr(node, 'lightbox'),
+        size: normalizeMediaImageSize(node.attrs?.size),
+        lightbox: node.attrs?.lightbox === true,
         title: stringAttr(node, 'title', ''),
       }
       const metadata = serializeMediaImageTitle(presentation)

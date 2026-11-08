@@ -48,13 +48,13 @@
     align-items: center;
     gap: var(--space-s);
     padding: var(--space-s) var(--space-m);
-    border-radius: var(--editor-radius);
+    border-radius: var(--radius);
     cursor: pointer;
 }
 
 .row:hover,
 .row[data-selected="true"] {
-    background: var(--editor-surface-2);
+    background: var(--bg-surface-2);
 }
 
 .row:focus-within {
