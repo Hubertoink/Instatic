@@ -3,8 +3,8 @@ import {
   firstMediaPathFromMarkdown,
   markdownToProseMirrorDoc,
   proseMirrorDocToMarkdown,
-  type JSONNode,
 } from '@core/markdown/markdownDocument'
+import type { JSONNode } from '@core/markdown/documentNodes'
 import { renderMarkdownToHtml } from '@core/markdown/renderMarkdown'
 import { parseMediaImageTitle } from '@core/markdown/mediaImagePresentation'
 

@@ -28,44 +28,10 @@ import { Marked, type Tokens, type Token } from 'marked'
 import { alignedBlock, serializeAlignedBlock } from './alignedBlock'
 import { normalizeMediaImageSize, parseMediaImageTitle, serializeMediaImageTitle, escapeImageTitle, type MediaImagePresentation } from './mediaImagePresentation'
 
-// ---------------------------------------------------------------------------
-// ProseMirror JSON shape (just enough — we don't pull in @tiptap/pm here so
-// this module stays usable from non-DOM contexts like Bun tests)
-// ---------------------------------------------------------------------------
-
-interface JSONMark {
-  type: string
-  attrs?: Record<string, unknown>
-}
-
-export interface JSONNode {
-  type: string
-  attrs?: Record<string, unknown>
-  content?: JSONNode[]
-  marks?: JSONMark[]
-  text?: string
-}
+import { mediaNode, type JSONMark, type JSONNode } from './documentNodes'
 
 type DocNode = JSONNode & { type: 'doc' }
 
-function mediaNode(
-  mediaType: 'image' | 'video',
-  src: string,
-  alt: string,
-  presentation: Partial<MediaImagePresentation> = {},
-): JSONNode {
-  return {
-    type: 'media',
-    attrs: {
-      mediaType,
-      src,
-      alt,
-      size: presentation.size ?? 'l',
-      lightbox: presentation.lightbox ?? false,
-      title: presentation.title ?? '',
-    },
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Marked configuration — single instance, no globals.
