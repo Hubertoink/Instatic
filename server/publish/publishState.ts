@@ -26,7 +26,14 @@
 // Publish version
 // ---------------------------------------------------------------------------
 
+import { randomUUID } from 'node:crypto'
+
+const publishInstanceId = randomUUID()
 let publishVersion = 0
+
+export function getPublishInstanceId(): string {
+  return publishInstanceId
+}
 
 /**
  * Increment the publish version. All version-keyed caches (the render-cache

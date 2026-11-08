@@ -1598,4 +1598,32 @@ export const sqliteMigrations: Migration[] = [
              glob '[0-3][0-9].[0-1][0-9].[12][0-9][0-9][0-9]';
     `,
   },
+  {
+    id: '033_post_type_pinned',
+    sql: `
+      update data_tables
+         set fields_json = json_insert(
+               fields_json,
+               '$[#]',
+               json('{"type":"boolean","id":"pinned","label":"Keep at top","defaultValue":false,"builtIn":true}')
+             )
+       where kind = 'postType'
+         and not exists (
+               select 1
+                 from json_each(data_tables.fields_json)
+                where json_extract(value, '$.id') = 'pinned'
+             );
+    `,
+  },
+  {
+    // Which plugin created this table via `cms.content.tables.create` (null
+    // for user/import-created tables). The plugin host's `@own-created`
+    // contentAccess marker resolves against this column, so a plugin keeps
+    // access to tables it created at runtime — durable across restarts and
+    // admin-side slug renames. Nullable, no default: purely additive.
+    id: '031_data_tables_created_by_plugin',
+    sql: `
+      alter table data_tables add column created_by_plugin_id text;
+    `,
+  },
 ]

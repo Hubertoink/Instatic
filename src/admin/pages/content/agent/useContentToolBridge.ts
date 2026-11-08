@@ -50,6 +50,7 @@ interface ContentToolWorkspaceSurface {
 
 interface ContentToolDraftSurface {
   setTitle(value: string): void
+  setPinned(value: boolean): void
   setSlug(value: string): void
   setSeoTitle(value: string): void
   setSeoDescription(value: string): void
@@ -266,6 +267,9 @@ function applyFieldsToDraft(
     switch (key) {
       case 'title':
         if (typeof raw === 'string') draft.setTitle(raw)
+        break
+      case 'pinned':
+        if (typeof raw === 'boolean') draft.setPinned(raw)
         break
       case 'slug':
         if (typeof raw === 'string') draft.setSlug(raw)

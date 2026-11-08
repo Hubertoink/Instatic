@@ -67,7 +67,7 @@ import {
   getPublishedDataRowByRoute,
 } from '../repositories/data/publish'
 import { getPublishedPageBySlug } from '../repositories/publish'
-import { applyPublishedHtmlPipeline } from './publishedHtmlPipeline'
+import { applyPublishedHtmlPipeline, isPublishedHtmlCurrent } from './publishedHtmlPipeline'
 import {
   renderPublishedDataRowTemplate,
   renderPublishedNotFound,
@@ -232,7 +232,7 @@ export async function renderPublicResolution(
   // canonical URL's baked HTML; junk query strings still hit the disk artefact.
   if (uploadsDir && canonicalQuery === '') {
     const html = await readArtefact(uploadsDir, url.pathname)
-    if (html !== null) {
+    if (html !== null && isPublishedHtmlCurrent(html, getPublishVersion())) {
       return new Response(html, {
         headers: { 'content-type': 'text/html; charset=utf-8' },
       })
@@ -312,7 +312,7 @@ export async function renderNotFoundResponse(
   // ── Layer A: baked 404 artefact ───────────────────────────────────────────
   if (uploadsDir) {
     const html = await readArtefact(uploadsDir, NOT_FOUND_ARTEFACT_URL_PATH)
-    if (html !== null) {
+    if (html !== null && isPublishedHtmlCurrent(html, getPublishVersion())) {
       return new Response(html, { status: 404, headers: htmlHeaders })
     }
   }

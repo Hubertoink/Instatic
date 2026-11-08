@@ -334,6 +334,14 @@ export const DataTableSchema = Type.Object({
    */
   system: Type.Boolean(),
   createdByUserId: Type.Union([Type.String(), Type.Null()]),
+  /**
+   * Plugin id when the table was created through the plugin surface
+   * (`cms.content.tables.create`); null for user/import-created tables. The
+   * plugin host's `@own-created` contentAccess marker matches against this.
+   * OPTIONAL because `DataTableSchema` also validates bundle archives exported
+   * before the column existed — server reads always populate it.
+   */
+  createdByPluginId: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   updatedByUserId: Type.Union([Type.String(), Type.Null()]),
   /** ISO datetime string from DB */
   createdAt: Type.String(),
@@ -537,6 +545,7 @@ export const POST_TYPE_FIELD_TITLE = 'title'
 export const POST_TYPE_FIELD_SLUG = 'slug'
 export const POST_TYPE_FIELD_BODY = 'body'
 export const POST_TYPE_FIELD_FEATURED_MEDIA = 'featuredMedia'
+export const POST_TYPE_FIELD_PINNED = 'pinned'
 export const POST_TYPE_FIELD_SEO_TITLE = 'seoTitle'
 export const POST_TYPE_FIELD_SEO_DESCRIPTION = 'seoDescription'
 
@@ -546,6 +555,7 @@ export const POST_TYPE_MANDATORY_FIELD_IDS = [
 ] as const
 
 export const POST_TYPE_OPTIONAL_BUILTIN_FIELD_IDS = [
+  POST_TYPE_FIELD_PINNED,
   POST_TYPE_FIELD_BODY,
   POST_TYPE_FIELD_FEATURED_MEDIA,
   POST_TYPE_FIELD_SEO_TITLE,

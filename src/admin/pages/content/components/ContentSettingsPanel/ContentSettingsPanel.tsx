@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Input, Textarea } from '@ui/components/Input'
 import { Select } from '@ui/components/Select'
+import { Checkbox } from '@ui/components/Checkbox'
 import { SkeletonBlock } from '@ui/components/Skeleton'
 import { cn } from '@ui/cn'
 import { Settings2SolidIcon } from 'pixel-art-icons/icons/settings-2-solid'
@@ -10,6 +11,7 @@ import { useWorkspaceLayout } from '@admin/state/workspaceLayout'
 import { dataTableHasField } from '@core/data/fields'
 import {
   POST_TYPE_FIELD_FEATURED_MEDIA,
+  POST_TYPE_FIELD_PINNED,
   POST_TYPE_FIELD_SEO_TITLE,
   type DataField,
   type DataRowCells,
@@ -41,6 +43,7 @@ interface ContentSettingsPanelProps {
   selectedCollection: DataTable | null
   loading: boolean
   slug: string
+  pinned: boolean
   slugId: string
   seoTitle: string
   seoTitleId: string
@@ -59,6 +62,7 @@ interface ContentSettingsPanelProps {
   onCollectionChange: (tableId: string) => void
   onAuthorChange: (authorUserId: string) => void
   onSlugChange: (value: string) => void
+  onPinnedChange: (value: boolean) => void
   onSeoTitleChange: (value: string) => void
   onSeoDescriptionChange: (value: string) => void
   onCustomCellChange: (fieldId: string, value: unknown) => void
@@ -111,6 +115,7 @@ export function ContentSettingsPanel({
   selectedCollection,
   loading,
   slug,
+  pinned,
   slugId,
   seoTitle,
   seoTitleId,
@@ -128,6 +133,7 @@ export function ContentSettingsPanel({
   onCollectionChange,
   onAuthorChange,
   onSlugChange,
+  onPinnedChange,
   onSeoTitleChange,
   onSeoDescriptionChange,
   onCustomCellChange,
@@ -207,6 +213,17 @@ export function ContentSettingsPanel({
                 disabled={!canEditSelectedEntry}
               />
             </label>
+            {selectedCollection && dataTableHasField(selectedCollection, POST_TYPE_FIELD_PINNED) && (
+              <label className={styles.field}>
+                <span>Keep at top</span>
+                <Checkbox
+                  checked={pinned}
+                  onCheckedChange={onPinnedChange}
+                  disabled={!canEditSelectedEntry}
+                />
+                <small>Shown first in loops with &quot;Pinned entries first&quot; enabled.</small>
+              </label>
+            )}
             {seoEnabled && (
               <>
                 <label className={styles.field} htmlFor={seoTitleId}>

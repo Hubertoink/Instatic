@@ -28,7 +28,7 @@ import { normalizeRouteBase } from '@core/templates/templateMatching'
 import { publicDataUserFromParts } from '@core/data/publicDataUser'
 import { normalizeDataTableFields } from '@core/data/fields'
 import { readFeaturedMediaCell } from '@core/data/cells'
-import type { DataField, DataRowCells } from '@core/data/schemas'
+import { POST_TYPE_FIELD_PINNED, type DataField, type DataRowCells } from '@core/data/schemas'
 import { collectMediaIds, resolveMediaIdsToPaths } from './dataRowsMedia'
 import { resolvedCellOverlay } from './dataRowsCells'
 
@@ -83,6 +83,33 @@ const ALLOWED_ORDER_BY: ReadonlySet<OrderColumn> = new Set([
  */
 function positionalParam(db: LoopSourceDb, index: number): string {
   return db.dialect === 'postgres' ? `$${index}` : '?'
+}
+
+function rowOrderSql(input: {
+  db: LoopSourceDb
+  column: string
+  fallbackColumn: string
+  orderCellField: string | null
+  pinnedFirst: boolean
+  paramIndex: number
+}): { sql: string; params: unknown[] } {
+  const { db, column, fallbackColumn, orderCellField, pinnedFirst, paramIndex } = input
+  const pinned = pinnedFirst
+    ? cellFilterSql({
+      filter: { field: POST_TYPE_FIELD_PINNED, operator: 'isTrue', value: '' },
+      dialect: db.dialect, column, nextParamIndex: paramIndex,
+    })
+    : null
+  const order = orderCellField
+    ? cellOrderSql({
+      field: orderCellField, dialect: db.dialect, column,
+      paramIndex: paramIndex + (pinned?.params.length ?? 0),
+    })
+    : null
+  return {
+    sql: `${pinned ? `case when ${pinned.sql} then 1 else 0 end desc, ` : ''}${order?.sql ?? fallbackColumn}`,
+    params: [...(pinned?.params ?? []), ...(order?.params ?? [])],
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -184,7 +211,7 @@ async function fetchPage(
   db: LoopSourceDb,
   orderBy: OrderColumn,
   direction: 'asc' | 'desc',
-  opts: { tableId: string; limit: number; offset: number; filter: CellFilter | null; orderCellField: string | null; rowIds?: readonly string[] },
+  opts: { tableId: string; limit: number; offset: number; filter: CellFilter | null; orderCellField: string | null; pinnedFirst: boolean; rowIds?: readonly string[] },
 ): Promise<PublishedDataRowSqlRow[]> {
   const { tableId, limit, offset, filter, orderCellField } = opts
   const column = 'data_row_versions.cells_json'
@@ -196,11 +223,12 @@ async function fetchPage(
     ? cellFilterSql({ filter, dialect: db.dialect, column, nextParamIndex: 2 + ids.length })
     : null
   const cellParams = [...ids, ...(cell?.params ?? [])]
-  const order = orderCellField
-    ? cellOrderSql({ field: orderCellField, dialect: db.dialect, column, paramIndex: 2 + cellParams.length })
-    : null
-  const orderColumn = order ? order.sql : POST_TYPE_ORDER_COLUMN[orderBy]
-  const orderParams = order?.params ?? []
+  const order = rowOrderSql({
+    db, column, fallbackColumn: POST_TYPE_ORDER_COLUMN[orderBy],
+    orderCellField, pinnedFirst: opts.pinnedFirst, paramIndex: 2 + cellParams.length,
+  })
+  const orderColumn = order.sql
+  const orderParams = order.params
   const before = cellParams.length + orderParams.length
   const limitParam = positionalParam(db, 2 + before)
   const offsetParam = positionalParam(db, 3 + before)
@@ -350,6 +378,7 @@ async function fetchDataKindPage(
     offset: number
     filter: CellFilter | null
     orderCellField: string | null
+    pinnedFirst: boolean
     /** Post-type drafts (a branch): skip rows explicitly taken offline. */
     excludeUnpublished: boolean
     rowIds?: readonly string[]
@@ -365,11 +394,12 @@ async function fetchDataKindPage(
     ? cellFilterSql({ filter, dialect: db.dialect, column, nextParamIndex: 2 + ids.length })
     : null
   const cellParams = [...ids, ...(cell?.params ?? [])]
-  const order = orderCellField
-    ? cellOrderSql({ field: orderCellField, dialect: db.dialect, column, paramIndex: 2 + cellParams.length })
-    : null
-  const orderColumn = order ? order.sql : DATA_KIND_ORDER_COLUMN[sortKey]
-  const orderParams = order?.params ?? []
+  const order = rowOrderSql({
+    db, column, fallbackColumn: DATA_KIND_ORDER_COLUMN[sortKey],
+    orderCellField, pinnedFirst: opts.pinnedFirst, paramIndex: 2 + cellParams.length,
+  })
+  const orderColumn = order.sql
+  const orderParams = order.params
   const before = cellParams.length + orderParams.length
   const limitParam = positionalParam(db, 2 + before)
   const offsetParam = positionalParam(db, 3 + before)
@@ -430,6 +460,8 @@ export async function fetchPublishedDataRowItems(
     offset: number
     /** Optional condition on one of the row's own cells. */
     cellFilter?: CellFilter | null
+    /** Prioritize pinned post-type entries before the selected order. */
+    pinnedFirst?: boolean
     /**
      * Read post-type rows as DRAFTS instead of through their published
      * versions — a branch has no versions (publishing is main-only), so its
@@ -454,6 +486,7 @@ export async function fetchPublishedDataRowItems(
   const table = tableRows[0]
   if (!table) return { items: [], totalItems: 0 }
   const fields = normalizeDataTableFields(table.fields_json)
+  const pinnedFirst = table.kind === 'postType' && opts.pinnedFirst === true
 
   // `orderBy` is either one of the whitelisted columns or `cell:<fieldId>`,
   // in which case the sort runs on the row's own cell (the field name binds
@@ -468,7 +501,7 @@ export async function fetchPublishedDataRowItems(
   const excludeUnpublished = table.kind !== 'data' && opts.drafts === true
   if (opts.rowIds) {
     const query = {
-      ...opts, filter: cellFilter, orderCellField, excludeUnpublished,
+      ...opts, filter: cellFilter, orderCellField, excludeUnpublished, pinnedFirst,
     }
     const items: LoopItem[] = []
     // Stay below SQLite's bind limit even for large multi-relations.
@@ -511,6 +544,7 @@ export async function fetchPublishedDataRowItems(
       offset: opts.offset,
       filter: cellFilter,
       orderCellField,
+      pinnedFirst,
       excludeUnpublished,
     })
     const mediaPathMap = await resolveMediaIdsToPaths(db, collectMediaIds(sqlRows, fields))
@@ -543,6 +577,7 @@ export async function fetchPublishedDataRowItems(
     offset: opts.offset,
     filter: cellFilter,
     orderCellField,
+    pinnedFirst,
   })
   const mediaPathMap = await resolveMediaIdsToPaths(db, collectMediaIds(sqlRows, fields))
 
@@ -569,6 +604,10 @@ export const DataRowsSource: LoopEntitySource = {
       // available data tables — passing an empty list here keeps the schema
       // valid when the source is registered before the table list is loaded.
       options: [],
+    },
+    pinnedFirst: {
+      type: 'toggle',
+      label: 'Pinned entries first',
     },
     // Optional condition on one of the row's own cells: the difference
     // between "the newest three" and "the three marked featured". Field
@@ -634,6 +673,7 @@ export const DataRowsSource: LoopEntitySource = {
       limit: ctx.limit,
       offset: ctx.offset,
       cellFilter: parseCellFilter(ctx.filters),
+      pinnedFirst: ctx.filters.pinnedFirst === true,
     })
   },
 

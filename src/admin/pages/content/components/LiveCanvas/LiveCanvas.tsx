@@ -60,6 +60,7 @@ import {
   proseMirrorDocToMarkdown,
 } from '@core/markdown/markdownDocument'
 import { MediaNode, type MediaAttributes } from '@content/nodes/MediaNode'
+import { ContentLinkAttributes } from '@content/nodes/ContentLinkAttributes'
 import type { TiptapBodyEditorHandle } from '@content/TiptapBodyEditor'
 import { previewCmsDataRow } from '@core/persistence/cmsData'
 import { BodyBubbleMenu } from '../BodyBubbleMenu/BodyBubbleMenu'
@@ -452,6 +453,7 @@ export function LiveCanvas({
       element: target,
       editable: !readOnly,
       extensions: [
+        ContentLinkAttributes,
         StarterKit.configure({
           heading: { levels: [2, 3, 4] },
           link: { openOnClick: false, autolink: true, linkOnPaste: true },

@@ -1445,4 +1445,29 @@ export const pgMigrations: Migration[] = [
          and substr(cells_json->>'body', 21, 10) ~ '^[0-3][0-9]\\.[0-1][0-9]\\.[12][0-9]{3}$';
     `,
   },
+  {
+    id: '033_post_type_pinned',
+    sql: `
+      update data_tables
+         set fields_json = fields_json ||
+               '[{"type":"boolean","id":"pinned","label":"Keep at top","defaultValue":false,"builtIn":true}]'::jsonb
+       where kind = 'postType'
+         and not exists (
+               select 1
+                 from jsonb_array_elements(data_tables.fields_json) as field
+                where field->>'id' = 'pinned'
+             );
+    `,
+  },
+  {
+    // Which plugin created this table via `cms.content.tables.create` (null
+    // for user/import-created tables). The plugin host's `@own-created`
+    // contentAccess marker resolves against this column, so a plugin keeps
+    // access to tables it created at runtime — durable across restarts and
+    // admin-side slug renames. Nullable, no default: purely additive.
+    id: '031_data_tables_created_by_plugin',
+    sql: `
+      alter table data_tables add column created_by_plugin_id text;
+    `,
+  },
 ]

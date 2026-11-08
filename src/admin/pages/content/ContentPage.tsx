@@ -277,6 +277,7 @@ export function ContentPage() {
               ...entry.cells,
               ...draft.customCells,
               body: draft.body,
+              pinned: draft.pinned,
               featuredMedia: draft.featuredMediaId,
               seoTitle: draft.seoTitle,
               seoDescription: draft.seoDescription,
@@ -324,6 +325,7 @@ export function ContentPage() {
               ...entry.cells,
               ...draft.customCells,
               body: draft.body,
+              pinned: draft.pinned,
               featuredMedia: draft.featuredMediaId,
               seoTitle: draft.seoTitle,
               seoDescription: draft.seoDescription,
@@ -564,6 +566,7 @@ export function ContentPage() {
             selectedCollection={workspace.selectedCollection}
             loading={workspace.contentLoading}
             slug={draft.slug}
+            pinned={draft.pinned}
             slugId={slugId}
             seoTitle={draft.seoTitle}
             seoTitleId={seoTitleId}
@@ -577,6 +580,7 @@ export function ContentPage() {
             onCollectionChange={(tableId) => void handleMoveEntryCollection(tableId)}
             onAuthorChange={(authorUserId) => void handleUpdateEntryAuthor(authorUserId)}
             onSlugChange={draft.setSlug}
+            onPinnedChange={draft.setPinned}
             onSeoTitleChange={draft.setSeoTitle}
             onSeoDescriptionChange={draft.setSeoDescription}
             onCustomCellChange={draft.setCustomCell}
@@ -653,6 +657,7 @@ export function ContentPage() {
             title: draft.title,
             slug: draft.slug,
             body: draft.body,
+            pinned: draft.pinned,
             featuredMedia: draft.featuredMediaId,
             seoTitle: draft.seoTitle,
             seoDescription: draft.seoDescription,

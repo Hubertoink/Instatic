@@ -13,6 +13,7 @@ Loop sources are pluggable: built-in sources (`data.rows`, `site.pages`, `site.m
 - `entry.field` is the contextual exception: it resolves an array on the closest `currentEntry` separately for every outer iteration, so a Project's multi-media `gallery` field can drive an inner loop.
 - The `base.loop` module's children are **variants** — different per-item layouts (e.g. "Card", "Featured"). The walker round-robins across them as it iterates.
 - At publish time, `loopPrefetch.ts` calls each loop's `fetch()` and stores results on the render context. The walker is then purely synchronous.
+- Documents containing `data.rows` loops (including loops in composed templates and referenced Visual Components) carry a content-version marker. After a row is published, republished, unpublished, deleted or moved, stale disk artefacts fall through to the versioned render cache using the published page snapshot. This refreshes complete server-rendered listings without publishing draft layouts or requiring client-side holes. A process-instance identifier prevents persisted artefacts from matching a reset version counter after a restart; pages without these loops retain their disk fast-path.
 - Each iteration renders against a fresh `entryStack` snapshot (`[...baseStack, item]`) carried in a child `RenderConfig`; nodes inside the loop resolve `currentEntry.<field>` against that item via dynamic bindings. The stack is never mutated in place.
 
 ---
@@ -219,6 +220,25 @@ See [docs/features/plugin-system.md](plugin-system.md) and the loop-sources sect
 ---
 
 ## Filters and ordering
+
+### Pinned news and posts
+
+Post-type entries have a built-in **Keep at top** checkbox in the Content
+settings panel. Save and publish the entry to make its pinned state public.
+Existing entries without a `pinned` cell are treated as unpinned.
+
+For a `data.rows` loop using a post-type collection, enable **Pinned entries
+first** in the loop properties. This stores `filters.pinnedFirst: true` and
+puts pinned entries before other matching entries. The selected **Order by**
+and **Direction** still apply within both groups (for news, use the publication
+date field and descending order). Pinning does not change the entry's date.
+Other filters still apply: pinning does not include drafts or entries excluded
+by a condition.
+
+The priority is applied before limit, offset and pagination, consistently in
+the canvas preview, published pages and infinite-loading requests. The option
+is off by default, so existing loops keep their ordering. Data-kind tables and
+contextual relation loops are unaffected.
 
 Each source declares its filter and order options through `filterSchema` and `orderByOptions`. The editor's Properties panel renders the matching controls when a `base.loop` node is selected and its `sourceId` is set.
 

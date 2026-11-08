@@ -12,11 +12,17 @@
  * requiring module-level spying on the renderer.
  */
 import { beforeEach, describe, expect, it } from 'bun:test'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { DbClient, DbResult } from '../../../server/db'
 import type { PublishedPageSnapshot } from '../../../server/repositories/publish'
 import { renderPublicResolution } from '../../../server/publish/publicRouter'
 import { getStats, resetForTests } from '../../../server/publish/renderCache'
-import { bumpPublishVersion } from '../../../server/publish/publishState'
+import { bumpPublishVersion, getPublishVersion, getPublishInstanceId } from '../../../server/publish/publishState'
+import { isPublishedHtmlCurrent } from '../../../server/publish/publishedHtmlPipeline'
+import { updateArtefactInPlace } from '../../../server/publish/staticArtefact'
+import { createNode } from '@core/page-tree'
 
 // ---------------------------------------------------------------------------
 // Minimal snapshot fixture
@@ -157,6 +163,46 @@ function makeRedirectDb(): DbClient {
 
 beforeEach(() => {
   resetForTests()
+})
+
+describe('Content-backed Layer A artefacts', () => {
+  it('keeps plain static HTML current but rejects stale or previous-process content markers', () => {
+    const version = getPublishVersion()
+    const prefix = `<!-- instatic:content-version=${getPublishInstanceId()}:`
+    expect(isPublishedHtmlCurrent('<!DOCTYPE html><p>Static</p>', version)).toBe(true)
+    expect(isPublishedHtmlCurrent(`${prefix}${version} --><p>Current</p>`, version)).toBe(true)
+    expect(isPublishedHtmlCurrent(`${prefix}${version + 1} --><p>Stale</p>`, version)).toBe(false)
+    expect(isPublishedHtmlCurrent(`<!-- instatic:content-version=previous-process:${version} --><p>Old</p>`, version)).toBe(false)
+  })
+
+  it('renders published data loops afresh after a content mutation, without publishing draft pages', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'instatic-content-artefact-'))
+    try {
+      const snapshot = makeSnapshot()
+      const page = snapshot.site.pages[0]!
+      const loop = createNode('base.loop')
+      loop.props = { sourceId: 'data.rows', filters: { tableId: 'offers' } }
+      page.nodes[loop.id] = loop
+      page.nodes[page.rootNodeId]!.children.push(loop.id)
+      const db = makeFakeDb(snapshot)
+      const url = new URL('http://localhost/test')
+      const rendered = await renderPublicResolution(db, url)
+      const html = await rendered!.text()
+      expect(html).toStartWith(`<!-- instatic:content-version=${getPublishInstanceId()}:${getPublishVersion()} -->`)
+      await updateArtefactInPlace(directory, '/test', html)
+      resetForTests()
+      await renderPublicResolution(db, url, directory)
+      expect(getStats().misses).toBe(0)
+      bumpPublishVersion()
+      const refreshed = await renderPublicResolution(db, url, directory)
+      expect(getStats().misses).toBe(1)
+      expect(await refreshed!.text()).toStartWith(`<!-- instatic:content-version=${getPublishInstanceId()}:${getPublishVersion()} -->`)
+      await renderPublicResolution(db, url, directory)
+      expect(getStats().hits).toBe(1)
+    } finally {
+      await rm(directory, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('Layer B render cache integration', () => {
