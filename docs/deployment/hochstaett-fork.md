@@ -5,7 +5,24 @@ This fork preserves the locally tested CMS customizations used by the Hochstaett
 - Fork: https://github.com/Hubertoink/Instatic
 - Upstream: https://github.com/CoreBunch/Instatic
 - Initial integration branch: `feat/hochstaett-deployment-baseline`
-- Upstream base: `f92e8dc1` (0.0.20)
+- Upstream base: `d1abbefa` (0.0.21)
+
+## Upstream 0.0.21 integration
+
+The fork retains its publication-date migrations (`031_posts_publication_date`
+and `032_posts_publication_date_from_body`) and pinned-post migration
+(`033_post_type_pinned`). Upstream's `031_data_tables_created_by_plugin` is
+appended unchanged in both database dialects. Migration tracking uses the full
+ID, not its numeric prefix; do not rename existing IDs or replay their SQL.
+This preserves upgrade history and adds the nullable plugin-owner column.
+
+Content AI tools retain repeater field descriptions while enforcing the shared
+table and row authorization rules introduced by upstream.
+
+Remote MCP OAuth requires `PUBLIC_ORIGIN` to match the installation's public
+HTTPS origin. Check this setting before deploying the new image. Local loopback
+development remains supported without it. Test upgrades against a database copy
+and retain the matching database and uploads backup before deployment.
 
 ## Source and runtime data
 
