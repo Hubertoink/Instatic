@@ -82,6 +82,7 @@ export const PUBLISHER_RESET_CSS = [
   ':where(button) { background: none; border: 0; cursor: pointer; }',
 
   '.instatic-lightbox-trigger { cursor: zoom-in; }',
+  'img[data-instatic-lightbox][role="button"] { cursor: zoom-in; }',
   ':root .instatic-content-align--left { text-align: left; }',
   ':root .instatic-content-align--center { text-align: center; }',
   ':root .instatic-content-align--right { text-align: right; }',

@@ -161,6 +161,11 @@ export const ImageModule: ModuleDefinition<ImageProps> = {
         { label: 'Auto', value: 'auto' },
       ],
     },
+    lightbox: {
+      type: 'toggle',
+      label: 'Open image in lightbox',
+      description: 'Enlarge this image on click. Images inside links or other interactive elements keep their existing action.',
+    },
     htmlAttributes: htmlAttributesControl(),
   },
 
@@ -210,6 +215,7 @@ export const ImageModule: ModuleDefinition<ImageProps> = {
     // Build the attribute string. Each attribute is conditionally appended
     // so the output is clean (no `width="null"` or empty `srcset=""`).
     const attrs: string[] = [`src="${src}"`, `alt="${alt}"`]
+    if (props.lightbox) attrs.push('data-instatic-lightbox')
     if (srcset) attrs.push(`srcset="${srcset}"`)
     if (sizes) attrs.push(`sizes="${sizes}"`)
     if (width !== null) attrs.push(`width="${width}"`)

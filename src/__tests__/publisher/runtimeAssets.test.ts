@@ -17,6 +17,25 @@ const page = makePage({
 const site = makeSite({ pages: [page] })
 
 describe('publishPage runtime assets', () => {
+  it('loads the lightbox runtime for an image module with lightbox enabled', () => {
+    const imageRegistry = makeRegistry({
+      'base.body': makeModule('base.body', {
+        canHaveChildren: true,
+        render: (_props, children) => ({ html: `<main>${children.join('')}</main>` }),
+      }),
+      'test.image': makeModule('test.image', {
+        render: () => ({ html: '<img src="/original.png" data-instatic-lightbox>' }),
+      }),
+    })
+    const imagePage = makePage({
+      root: { moduleId: 'base.body', props: {}, children: ['image'] },
+      image: { moduleId: 'test.image', props: {}, children: [] },
+    })
+    const html = publishPage(imagePage, makeSite({ pages: [imagePage] }), imageRegistry).html
+    expect(html).toContain('/_instatic/image-lightbox-runtime.js')
+    expect(html).toContain("script-src 'self'")
+  })
+
   it('keeps script execution disabled when no runtime assets are present', () => {
     const { html } = publishPage(page, site, registry)
 

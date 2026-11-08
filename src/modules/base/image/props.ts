@@ -12,6 +12,7 @@ export const ImagePropsSchema = Type.Object({
     [Type.Literal('async'), Type.Literal('sync'), Type.Literal('auto')],
     { default: 'async' },
   ),
+  lightbox: Type.Boolean({ default: false }),
   htmlAttributes: Type.Record(Type.String(), Type.String(), HtmlAttributesPropSchemaOptions),
 })
 

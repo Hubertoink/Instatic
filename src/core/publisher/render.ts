@@ -627,7 +627,7 @@ export function publishPage(
     ),
   )
   const runtime = buildRuntimeAssetsBlock(options, acc, hasScrollAnimations,
-    bodyHtml.includes('instatic-lightbox-trigger') || acc.holeNodeIds.size > 0 || acc.infiniteLoopIds.size > 0)
+    bodyHtml.includes('instatic-lightbox-trigger') || bodyHtml.includes('data-instatic-lightbox') || acc.holeNodeIds.size > 0 || acc.infiniteLoopIds.size > 0)
   const csp = buildContentSecurityPolicy(runtime.anyScriptTag, runtime.importmap, acc.cspSources)
 
   const html = assembleHtmlDocument({

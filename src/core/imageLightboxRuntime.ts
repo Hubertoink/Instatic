@@ -39,7 +39,7 @@ export function installImageLightbox(doc: Document): () => void {
   closeButton.setAttribute('aria-label', 'Close image preview')
   dialog.append(shade, image, closeButton)
   shadow.append(style, dialog)
-  let trigger: HTMLAnchorElement | null = null
+  let trigger: HTMLElement | null = null
   let savedStyle = ''
   let scrollX = 0
   let scrollY = 0
@@ -75,16 +75,41 @@ export function installImageLightbox(doc: Document): () => void {
   })
   dialog.addEventListener('cancel', event => { event.preventDefault(); close() })
 
-  const onClick = (event: MouseEvent) => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-    const target = event.target
-    if (!(target instanceof win.Element)) return
-    const link = target.closest<HTMLAnchorElement>('a.instatic-lightbox-trigger')
-    const source = link?.querySelector('img')
-    if (!link || !source || link.closest('[contenteditable="true"]')) return
-    event.preventDefault()
+  const interactive = 'a, button, input, select, textarea, [role="button"], [role="link"], [tabindex], [contenteditable="true"]'
+  const prepared = new Map<HTMLImageElement, { role: string | null; tabindex: string | null; label: string | null }>()
+  const restore = (source: HTMLImageElement, attrs: { role: string | null; tabindex: string | null; label: string | null }) => {
+    for (const [key, value] of Object.entries(attrs)) {
+      const attr = key === 'label' ? 'aria-label' : key
+      if (value === null) source.removeAttribute(attr)
+      else source.setAttribute(attr, value)
+    }
+  }
+  const prepare = () => {
+    for (const [source, attrs] of prepared) {
+      if (!source.isConnected || source.parentElement?.closest(interactive)) {
+        restore(source, attrs)
+        prepared.delete(source)
+      }
+    }
+    for (const source of doc.querySelectorAll<HTMLImageElement>('img[data-instatic-lightbox]')) {
+      if (prepared.has(source) || source.parentElement?.closest(interactive)) continue
+      prepared.set(source, {
+        role: source.getAttribute('role'),
+        tabindex: source.getAttribute('tabindex'),
+        label: source.getAttribute('aria-label'),
+      })
+      source.setAttribute('role', 'button')
+      source.setAttribute('tabindex', '0')
+      source.setAttribute('aria-label', source.alt ? `Open image: ${source.alt}` : 'Open image in full size')
+    }
+  }
+  prepare()
+  const observer = new win.MutationObserver(prepare)
+  observer.observe(doc.body, { childList: true, subtree: true })
+
+  const open = (source: HTMLImageElement, origin: HTMLElement, fullSrc: string) => {
     if (dialog.open) return
-    trigger = link
+    trigger = origin
     scrollX = win.scrollX
     scrollY = win.scrollY
     savedStyle = doc.body.style.cssText
@@ -94,7 +119,7 @@ export function installImageLightbox(doc: Document): () => void {
       position: 'fixed', top: `-${scrollY}px`, left: `-${scrollX}px`,
       width: '100%', boxSizing: 'border-box', paddingRight: `${padding + gutter}px`,
     })
-    image.src = source.currentSrc || source.src
+    image.src = fullSrc
     image.alt = source.alt
     dialog.removeAttribute('data-visible')
     doc.body.append(host)
@@ -110,10 +135,38 @@ export function installImageLightbox(doc: Document): () => void {
     if (image.decode) void image.decode().then(reveal, reveal)
     else reveal()
   }
+
+  const onClick = (event: MouseEvent) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    const target = event.target
+    if (!(target instanceof win.Element)) return
+    const link = target.closest<HTMLAnchorElement>('a.instatic-lightbox-trigger')
+    const linkedImage = link?.querySelector('img')
+    if (link && linkedImage && !link.closest('[contenteditable="true"]')) {
+      event.preventDefault()
+      open(linkedImage, link, link.href)
+      return
+    }
+    const source = target.closest<HTMLImageElement>('img[data-instatic-lightbox]')
+    if (!source || !prepared.has(source) || source.parentElement?.closest(interactive)) return
+    event.preventDefault()
+    open(source, source, source.src)
+  }
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || (event.key !== 'Enter' && event.key !== ' ')) return
+    const source = event.target
+    if (!(source instanceof win.HTMLImageElement) || !prepared.has(source) || source.parentElement?.closest(interactive)) return
+    event.preventDefault()
+    open(source, source, source.src)
+  }
   doc.addEventListener('click', onClick)
+  doc.addEventListener('keydown', onKeyDown)
   return () => {
     doc.removeEventListener('click', onClick)
+    doc.removeEventListener('keydown', onKeyDown)
+    observer.disconnect()
     finish()
     host.remove()
+    for (const [source, attrs] of prepared) restore(source, attrs)
   }
 }

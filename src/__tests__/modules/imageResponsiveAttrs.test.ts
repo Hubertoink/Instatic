@@ -72,4 +72,12 @@ describe('base.image sizes resolution', () => {
     expect(m).not.toBeNull()
     expect(m![1]).not.toContain('.png')
   })
+
+  it('enables lightbox only when explicitly selected', () => {
+    expect(renderImage({ loading: 'lazy' })).not.toContain('data-instatic-lightbox')
+    const html = renderImage({ loading: 'lazy', lightbox: true })
+    expect(html).toContain('data-instatic-lightbox')
+    expect(html).toContain('src="/uploads/hero.png"')
+    expect(html).toContain('srcset=')
+  })
 })
