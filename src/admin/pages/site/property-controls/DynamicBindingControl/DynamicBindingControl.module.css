@@ -4,6 +4,18 @@
     position: relative;
 }
 
+.affordanceWrapperToggle {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 26px;
+    align-items: center;
+    gap: var(--space-3xs);
+}
+
+.affordanceWrapperToggle .affordanceBtn {
+    position: static;
+    justify-self: center;
+}
+
 .affordanceBtn {
     position: absolute;
     right: 4px;

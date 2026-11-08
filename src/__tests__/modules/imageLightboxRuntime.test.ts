@@ -39,6 +39,10 @@ describe('image lightbox runtime', () => {
     expect(dialog()?.open).toBe(true)
     expect(dialog()?.querySelector('img')?.src).toBe(source.src)
     expect(dialog()?.querySelector('img')?.alt).toBe('Example')
+    const close = dialog()?.querySelector('button')
+    expect(close?.getAttribute('aria-label')).toBe('Close image preview')
+    expect(close?.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 24 24')
+    expect(close?.querySelector('path')?.getAttribute('d')).toBe('M6 6l12 12M18 6L6 18')
     cleanup?.()
     cleanup = undefined
     expect(document.activeElement).toBe(source)

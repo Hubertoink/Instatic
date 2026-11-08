@@ -121,6 +121,32 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('dynamic binding controls', () => {
+  it('keeps toggle and data-binding actions separate', async () => {
+    loadTemplateWithTextNode()
+    let checked = false
+    render(
+      <DynamicBindingControl
+        propKey="lightbox"
+        label="Open image in lightbox"
+        control={{ type: 'toggle', label: 'Open image in lightbox' }}
+        onSet={() => {}}
+        onClear={() => {}}
+      >
+        <button role="switch" aria-checked="false" onClick={() => { checked = true }}>
+          Open image in lightbox
+        </button>
+      </DynamicBindingControl>,
+    )
+    const toggle = screen.getByRole('switch')
+    const bind = screen.getByRole('button', { name: /bind open image in lightbox/i })
+    expect(toggle.closest('[data-prop-key]')?.contains(bind)).toBe(true)
+    fireEvent.click(toggle)
+    expect(checked).toBe(true)
+    expect(screen.queryByRole('menu')).toBeNull()
+    fireEvent.click(bind)
+    await waitFor(() => expect(screen.getByRole('menu', { name: /bind open image in lightbox/i })).toBeDefined())
+  })
+
   it('inserts a {currentEntry.field} token into the text prop value on a single click', async () => {
     loadTemplateWithTextNode()
     render(<PropertiesPanel />)

@@ -20,8 +20,9 @@ export function installImageLightbox(doc: Document): () => void {
       box-shadow:0 16px 64px rgba(0,0,0,.3); }
     button { position:absolute; top:max(12px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right));
       display:grid; place-items:center; width:48px; height:48px; padding:0; border:2px solid #fff;
-      border-radius:50%; background:#fff; color:#111; font:36px/1 system-ui,sans-serif;
+      border-radius:50%; background:#fff; color:#111;
       cursor:pointer; box-shadow:0 2px 16px rgba(0,0,0,.5); }
+    button svg { display:block; width:24px; height:24px; }
     button:hover { background:#e5e5e5; }
     button:focus-visible { outline:3px solid #fff; outline-offset:4px; }
     dialog[data-visible] .shade, dialog[data-visible] img { opacity:1; }
@@ -35,7 +36,17 @@ export function installImageLightbox(doc: Document): () => void {
   const image = doc.createElement('img')
   const closeButton = doc.createElement('button')
   closeButton.type = 'button'
-  closeButton.textContent = '×'
+  const closeIcon = doc.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  closeIcon.setAttribute('viewBox', '0 0 24 24')
+  closeIcon.setAttribute('aria-hidden', 'true')
+  const closePath = doc.createElementNS('http://www.w3.org/2000/svg', 'path')
+  closePath.setAttribute('d', 'M6 6l12 12M18 6L6 18')
+  closePath.setAttribute('fill', 'none')
+  closePath.setAttribute('stroke', 'currentColor')
+  closePath.setAttribute('stroke-width', '2')
+  closePath.setAttribute('stroke-linecap', 'round')
+  closeIcon.append(closePath)
+  closeButton.append(closeIcon)
   closeButton.setAttribute('aria-label', 'Close image preview')
   dialog.append(shade, image, closeButton)
   shadow.append(style, dialog)

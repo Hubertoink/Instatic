@@ -179,7 +179,11 @@ export function DynamicBindingControl({
     <>
       <div
         ref={wrapperRef}
-        className={cn(styles.affordanceWrapper, pickerOpen && styles.affordanceWrapperActive)}
+        className={cn(
+          styles.affordanceWrapper,
+          control.type === 'toggle' && styles.affordanceWrapperToggle,
+          pickerOpen && styles.affordanceWrapperActive,
+        )}
         data-prop-key={propKey}
       >
         {children}
