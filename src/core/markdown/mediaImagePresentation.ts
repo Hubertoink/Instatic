@@ -1,5 +1,3 @@
-import type { JSONNode } from './markdownDocument'
-
 export type MediaImageSize = 'original' | 'l' | 'm' | 's'
 
 export function normalizeMediaImageSize(value: unknown): MediaImageSize {
@@ -15,26 +13,6 @@ export interface MediaImagePresentation {
   size: MediaImageSize
   lightbox: boolean
   title: string
-}
-
-
-export function mediaNode(
-  mediaType: 'image' | 'video',
-  src: string,
-  alt: string,
-  presentation: Partial<MediaImagePresentation> = {},
-): JSONNode {
-  return {
-    type: 'media',
-    attrs: {
-      mediaType,
-      src,
-      alt,
-      size: presentation.size ?? 'l',
-      lightbox: presentation.lightbox ?? false,
-      title: presentation.title ?? '',
-    },
-  }
 }
 
 /**
@@ -76,13 +54,4 @@ export function serializeMediaImageTitle(presentation: MediaImagePresentation): 
 
 export function escapeImageTitle(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-}
-
-
-export function mediaSizeAttr(node: JSONNode, key: string): MediaImageSize {
-  return normalizeMediaImageSize(node.attrs?.[key])
-}
-
-export function booleanAttr(node: JSONNode, key: string): boolean {
-  return node.attrs?.[key] === true
 }
